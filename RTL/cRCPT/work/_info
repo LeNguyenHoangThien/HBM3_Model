@@ -1,0 +1,64 @@
+m255
+K3
+13
+cModel Technology
+Z0 dC:\altera\13.0sp1
+vMMURCPT
+Z1 IMNJVLEG[WchP;KjT1Zi;F3
+Z2 VPi6KD3BYzIL??KR;5[0:80
+Z3 d\\wsl.localhost\Ubuntu\home\duongtran\RCPTV8\RTL\cRCPT
+Z4 w1740218634
+Z5 8//wsl.localhost/Ubuntu/home/duongtran/RCPTV8/RTL/cRCPT/MMURCPT.v
+Z6 F//wsl.localhost/Ubuntu/home/duongtran/RCPTV8/RTL/cRCPT/MMURCPT.v
+L0 1
+Z7 OV;L;10.1d;51
+r1
+31
+Z8 !s90 -reportprogress|300|-work|work|//wsl.localhost/Ubuntu/home/duongtran/RCPTV8/RTL/cRCPT/MMURCPT.v|
+Z9 o-work work -O0
+Z10 n@m@m@u@r@c@p@t
+Z11 !s100 BTloLcf`Yfom:iDfMJI7B2
+Z12 !s108 1740219791.382000
+Z13 !s107 //wsl.localhost/Ubuntu/home/duongtran/RCPTV8/RTL/cRCPT/MMURCPT.v|
+!i10b 1
+!s85 0
+!s101 -O0
+vtestbench
+Z14 I6U>SFPnJYPSXfHmLZWQ782
+Z15 V<oZXni7Y_<jZkXfM3RIgN3
+R3
+Z16 w1740219783
+Z17 8//wsl.localhost/Ubuntu/home/duongtran/RCPTV8/RTL/cRCPT/testbench.v
+Z18 F//wsl.localhost/Ubuntu/home/duongtran/RCPTV8/RTL/cRCPT/testbench.v
+L0 3
+R7
+r1
+31
+Z19 !s90 -reportprogress|300|-work|work|//wsl.localhost/Ubuntu/home/duongtran/RCPTV8/RTL/cRCPT/testbench.v|
+R9
+!i10b 1
+Z20 !s100 2L8jUC=jL^1FIR[6f;_fk2
+!s85 0
+Z21 !s108 1740219791.747000
+Z22 !s107 //wsl.localhost/Ubuntu/home/duongtran/RCPTV8/RTL/cRCPT/testbench.v|
+!s101 -O0
+vTLBLine
+!i10b 1
+Z23 !s100 WPz:43e7l_>NEQeKZ67Xi0
+Z24 IEa>aLE56cMWn;R7OfaDRR2
+Z25 VG`m0PL4n0?7FKaImIPcV51
+R3
+Z26 w1740213228
+Z27 8//wsl.localhost/Ubuntu/home/duongtran/RCPTV8/RTL/cRCPT/TLBLine.v
+Z28 F//wsl.localhost/Ubuntu/home/duongtran/RCPTV8/RTL/cRCPT/TLBLine.v
+L0 1
+R7
+r1
+!s85 0
+31
+!s108 1740219792.078000
+!s107 //wsl.localhost/Ubuntu/home/duongtran/RCPTV8/RTL/cRCPT/TLBLine.v|
+Z29 !s90 -reportprogress|300|-work|work|//wsl.localhost/Ubuntu/home/duongtran/RCPTV8/RTL/cRCPT/TLBLine.v|
+!s101 -O0
+R9
+Z30 n@t@l@b@line

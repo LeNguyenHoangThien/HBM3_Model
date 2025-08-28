@@ -1,0 +1,6 @@
+g++  -g -Wall -fno-stack-protector -D"QUARTER_FETCH" -D"BBS" -D"cRCPT_ENABLE" -D"MAX_ORDER=9" -D"NUM_TOTAL_PAGES=65536" -D"NUM_REQUESTED_PAGES=8640" -D"BLOCKSIZE_INIT=2" -o run ./BuddyTop.cpp ./CQueue.cpp ./CFreeList.cpp ./CBlockList.cpp ./CBlockArray.cpp ./CPageArray.cpp ./CBuddy.cpp ./main.cpp ../Top.cpp
+BBS_cRCPT with NUM_REQUESTED_PAGES = 2, BLOCKSIZE_INIT = 8640
+Number of Free Nodes:      49026
+Number of allocated node:  4320
+AllocationTime:            747.45
+De-allocationTime:         65571.5

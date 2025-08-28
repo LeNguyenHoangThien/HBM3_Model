@@ -1,0 +1,6 @@
+g++  -g -Wall -fno-stack-protector -D"QUARTER_FETCH" -D"BBS" -D"CAMB_ENABLE" -D"MAX_ORDER=9" -D"NUM_TOTAL_PAGES=65536" -D"NUM_REQUESTED_PAGES=8640" -D"BLOCKSIZE_INIT=4" -o run ./BuddyTop.cpp ./CQueue.cpp ./CFreeList.cpp ./CBlockList.cpp ./CBlockArray.cpp ./CPageArray.cpp ./CBuddy.cpp ./main.cpp ../Top.cpp
+BBS_CAMB with NUM_REQUESTED_PAGES = 4, BLOCKSIZE_INIT = 8640
+Number of Free Nodes:      36739
+Number of allocated node:  2160
+AllocationTime:            438.391
+De-allocationTime:         10197.5

@@ -1,0 +1,6 @@
+g++  -g -Wall -fno-stack-protector -D"SINGLE_FETCH" -D"BBS" -D"MAX_ORDER=9" -D"NUM_TOTAL_PAGES=65536" -D"NUM_REQUESTED_PAGES=2025" -D"BLOCKSIZE_INIT=32" -o run ./BuddyTop.cpp ./CQueue.cpp ./CFreeList.cpp ./CBlockList.cpp ./CBlockArray.cpp ./CPageArray.cpp ./CBuddy.cpp ./main.cpp ../Top.cpp
+BBS_TRAD with NUM_REQUESTED_PAGES = 32, BLOCKSIZE_INIT = 2025
+Number of Free Nodes:      10373
+Number of allocated node:  80
+AllocationTime:            55.6506
+De-allocationTime:         14.7669

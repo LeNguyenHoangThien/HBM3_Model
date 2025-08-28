@@ -1,0 +1,23 @@
+ ##---------------------
+ ## Fully fragmented
+ ##---------------------
+  ./com_1280_Order0_Default	&&  ./run	> result_1280_Order0_Default.txt
+  ./com_1280_Order0_CAMB	&&  ./run	> result_1280_Order0_CAMB.txt
+ 
+  ./com_720_Order0_Default	&&  ./run	> result_720_Order0_Default.txt
+  ./com_720_Order0_CAMB		&&  ./run	> result_720_Order0_CAMB.txt
+ 
+  ./com_4096_Order0_Default	&&  ./run	> result_4096_Order0_Default.txt
+  ./com_4096_Order0_CAMB	&&  ./run	> result_4096_Order0_CAMB.txt
+ 
+ ##---------------------
+ ## Fully free 
+ ##---------------------
+  ./com_1280_Order9_Default	&&  ./run	> result_1280_Order9_Default.txt
+  ./com_1280_Order9_CAMB	&&  ./run	> result_1280_Order9_CAMB.txt
+ 
+  ./com_720_Order9_Default	&&  ./run	> result_720_Order9_Default.txt
+  ./com_720_Order9_CAMB		&&  ./run	> result_720_Order9_CAMB.txt
+
+  ./com_4096_Order9_Default	&&  ./run	> result_4096_Order9_Default.txt
+  ./com_4096_Order9_CAMB	&&  ./run	> result_4096_Order9_CAMB.txt

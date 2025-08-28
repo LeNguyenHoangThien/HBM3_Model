@@ -1,0 +1,6 @@
+g++  -g -Wall -fno-stack-protector -D"SINGLE_FETCH" -D"BBS" -D"NAPOT" -D"MAX_ORDER=9" -D"NUM_TOTAL_PAGES=65536" -D"NUM_REQUESTED_PAGES=8640" -D"BLOCKSIZE_INIT=256" -o run ./BuddyTop.cpp ./CQueue.cpp ./CFreeList.cpp ./CBlockList.cpp ./CBlockArray.cpp ./CPageArray.cpp ./CBuddy.cpp ./main.cpp ../Top.cpp
+BBS_NAPOT with NUM_REQUESTED_PAGES = 256, BLOCKSIZE_INIT = 8640
+Number of Free Nodes:      2071
+Number of allocated node:  67
+AllocationTime:            293.094
+De-allocationTime:         26.9821
