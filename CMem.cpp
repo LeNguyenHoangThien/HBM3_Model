@@ -28,8 +28,9 @@ CMem::CMem(string cName) {
 	this->cName  = cName;
 
 	//this->nCnt_RD2Data  = -1;
-	this->nCnt_CCD  = -1;	// Global. RD2RD. WR2WR
-	this->nCnt_RRD  = -1;	// Global. ACT2ACT diff bank
+	for (int i=0; i<BANK_NUM/BanksPerBGroup; i++) this->nCnt_CCD[i]	 = -1;		// Bank Group. Column-to-Column delay. RD2RD. WR2WR
+	for (int i=0; i<BANK_NUM/BanksPerBGroup; i++) this->nCnt_RRD[i]  = -1;		// Bank Group. ACT2ACT
+	for (int i=0; i<BANK_NUM/BanksPerBGroup; i++) this->nCnt_WTR[i] = -1;		// Bank Group. WR2RD
 
 	// Generate cmd pkt
 	this->spMemCmdPkt = new SMemCmdPkt;
@@ -67,8 +68,9 @@ EResultType CMem::Reset() {
 	};
 
 	// Initialize cnt
-	this->nCnt_CCD  = tCCD; // Global. RD2RD. WR2WR
-	this->nCnt_RRD  = tRRD; // Global. ACT2ACT diff bank
+	for (int i=0; i<BANK_NUM/BanksPerBGroup; i++) this->nCnt_CCD[i]	= tCCD; // Global. RD2RD. WR2WR
+	for (int i=0; i<BANK_NUM/BanksPerBGroup; i++) this->nCnt_RRD[i]	= tRRD; // Global. ACT2ACT diff bank
+	for (int i=0; i<BANK_NUM/BanksPerBGroup; i++) this->nCnt_WTR[i]	= tWTR; // Global. WR2RD diff bank
 
 	// mem cmd pkt
 	this->spMemCmdPkt->eMemCmd = EMEM_CMD_TYPE_NOP;
@@ -80,7 +82,8 @@ EResultType CMem::Reset() {
 		this->spMemStatePkt->eMemState[i]         = EMEM_STATE_TYPE_IDLE;
 		this->spMemStatePkt->IsRD_ready[i]        = ERESULT_TYPE_NO;
 		this->spMemStatePkt->IsWR_ready[i]        = ERESULT_TYPE_NO;
-		this->spMemStatePkt->IsFirstData_ready[i] = ERESULT_TYPE_NO;
+		this->spMemStatePkt->IsFirstData_Read_ready[i] = ERESULT_TYPE_NO;
+		this->spMemStatePkt->IsFirstData_Write_ready[i] = ERESULT_TYPE_NO;
 		this->spMemStatePkt->IsBankPrepared[i] 	  = ERESULT_TYPE_NO;
 		this->spMemStatePkt->IsACT_ready[i]       = ERESULT_TYPE_NO;
 		this->spMemStatePkt->IsPRE_ready[i]       = ERESULT_TYPE_NO;
@@ -189,34 +192,74 @@ string CMem::GetName() {
 	return (this->cName);
 };
 
+int CMem::Get_tCCD (int bank, int nbank) {
+	bool IsSameBankGroup = (std::floor(bank/BanksPerBGroup) == std::floor(nbank/BanksPerBGroup));
+	bool IsSameSID = (bank/BanksPerSID == nbank/BanksPerSID);
+
+	// Return the CCD timing based on the current configuration
+	if (IsSameBankGroup) {
+		return tCCDL; // Same bank group
+	} else if (IsSameSID) {
+		return tCCDS; // Same stack ID
+	} else {
+		return tCCDR; // Different stack ID
+	}
+};
+
+int CMem::Get_tRRD (int bank, int nbank) {
+	bool IsSameBankGroup = (std::floor(bank/BanksPerBGroup) == std::floor(nbank/BanksPerBGroup));
+
+	// Return the WTR timing based on the current configuration
+	if (IsSameBankGroup) {
+		return tRRDL; // Same bank group
+	} else {
+		return tRRDS; // Different bank group
+	}
+};
+
+int CMem::Get_tWTR (int bank, int nbank) {
+	bool IsSameBankGroup = (std::floor(bank/BanksPerBGroup) == std::floor(nbank/BanksPerBGroup));
+
+	// Return the WTR timing based on the current configuration
+	if (IsSameBankGroup) {
+		return tWTRL; // Same bank group
+	} else {
+		return tWTRS; // Different bank group
+	}
+};
 
 // Check RD cmd ready
-EResultType CMem::IsRD_global_ready() {
-
-	if (this->nCnt_CCD >= tCCD) {       // Global. RD2RD. WR2WR
-		return (ERESULT_TYPE_YES);
+EResultType CMem::IsRD_global_ready(int bank) {
+	for (int nbank=0; nbank<BANK_NUM; nbank++) {
+		int check_bankgroup = std::floor(nbank/BanksPerBGroup);
+		if (this->nCnt_CCD[check_bankgroup] < Get_tCCD(bank, nbank) or 
+			this->nCnt_WTR[check_bankgroup] < Get_tWTR(bank, nbank))
+			return (ERESULT_TYPE_NO);
 	};
-	return (ERESULT_TYPE_NO);
+	return (ERESULT_TYPE_YES);
 };
 
 
 // Check WR cmd ready
-EResultType CMem::IsWR_global_ready() {
-
-	if (this->nCnt_CCD >= tCCD) {      // Global. RD2RD. WR2WR
-		return (ERESULT_TYPE_YES);
+EResultType CMem::IsWR_global_ready(int bank) {
+	for (int nbank=0; nbank<BANK_NUM; nbank++) {
+		int check_bankgroup = std::floor(nbank/BanksPerBGroup);
+		if (this->nCnt_CCD[check_bankgroup] < Get_tCCD(bank, nbank) or
+			this->nCnt_RTW[check_bankgroup] < tRTW)
+			return (ERESULT_TYPE_NO);
 	};
-	return (ERESULT_TYPE_NO);
+	return (ERESULT_TYPE_YES);
 };
 
 
 // Check ACT cmd ready
-EResultType CMem::IsACT_global_ready() {
-
-	if (this->nCnt_RRD >= tRRD) {      // Global. ACT2ACT 
-		return (ERESULT_TYPE_YES);
+EResultType CMem::IsACT_global_ready(int bank) {
+	for (int nbank=0; nbank<BANK_NUM; nbank++) {
+		int check_bankgroup = std::floor(nbank/BanksPerBGroup);
+		if (this->nCnt_RRD[check_bankgroup] < Get_tRRD(bank, nbank))
+			return (ERESULT_TYPE_NO);
 	};
-	return (ERESULT_TYPE_NO);
+	return (ERESULT_TYPE_YES);
 };
 
 
@@ -231,18 +274,19 @@ SPMemStatePkt CMem::GetMemStatePkt() {
 		this->spMemStatePkt->IsWR_ready[i]         = this->cpBank[i]->IsWR_ready();
 		this->spMemStatePkt->IsPRE_ready[i]        = this->cpBank[i]->IsPRE_ready();
 		this->spMemStatePkt->IsACT_ready[i]        = this->cpBank[i]->IsACT_ready();
-		this->spMemStatePkt->IsFirstData_ready[i]  = this->cpBank[i]->IsFirstData_ready();
+		this->spMemStatePkt->IsFirstData_Read_ready[i]  = this->cpBank[i]->IsFirstData_Read_ready();
+		this->spMemStatePkt->IsFirstData_Write_ready[i] = this->cpBank[i]->IsFirstData_Write_ready();
 		this->spMemStatePkt->IsBankPrepared[i]     = this->cpBank[i]->IsBankPrepared();
 		this->spMemStatePkt->nActivatedRow[i]      = this->cpBank[i]->GetActivatedRow();
 		
 		// Obtain global info and override 
-		if (this->IsRD_global_ready() == ERESULT_TYPE_NO) {
+		if (this->IsRD_global_ready(i) == ERESULT_TYPE_NO) {
 			this->spMemStatePkt->IsRD_ready[i] = ERESULT_TYPE_NO;
 		};
-		if (this->IsWR_global_ready() == ERESULT_TYPE_NO) {
+		if (this->IsWR_global_ready(i) == ERESULT_TYPE_NO) {
 			this->spMemStatePkt->IsWR_ready[i] = ERESULT_TYPE_NO;
 		};
-		if (this->IsACT_global_ready() == ERESULT_TYPE_NO) {
+		if (this->IsACT_global_ready(i) == ERESULT_TYPE_NO) {
 			this->spMemStatePkt->IsACT_ready[i] = ERESULT_TYPE_NO;
 		};
 
@@ -280,18 +324,38 @@ EResultType CMem::UpdateState() {
 	// Update global counter CCD
 	// Assumption: CCD covers RD2RD, RD2WR, WR2RD, WR2WR 
 	if (this->spMemCmdPkt->eMemCmd == EMEM_CMD_TYPE_RD or this->spMemCmdPkt->eMemCmd == EMEM_CMD_TYPE_WR) {
-		this->nCnt_CCD = 1;  // Global. RD2RD. WR2WR
+		this->nCnt_CCD[this->spMemCmdPkt->nBank/BanksPerBGroup] = 1;  // Global. RD2RD. WR2WR
 	}
 	else {
-		this->nCnt_CCD ++; // obliviously increase
+		for (int i=0; i<BANK_NUM/BanksPerBGroup; i++) {
+			this->nCnt_CCD[i] ++; // obliviously increase
+		}
+	};
+
+	if (this->spMemCmdPkt->eMemCmd == EMEM_CMD_TYPE_WR) {
+		this->nCnt_WTR[this->spMemCmdPkt->nBank/BanksPerBGroup] = 1;  // Global. RD2RD. WR2WR
+	}
+	else {
+		for (int i=0; i<BANK_NUM/BanksPerBGroup; i++) {
+			this->nCnt_WTR[i] ++; // obliviously increase
+		}
+	};
+
+	if (this->spMemCmdPkt->eMemCmd == EMEM_CMD_TYPE_RD) {
+		this->nCnt_RTW[this->spMemCmdPkt->nBank/BanksPerBGroup] = 1;  // Global. RD2RD. WR2WR
+	}
+	else {
+		for (int i=0; i<BANK_NUM/BanksPerBGroup; i++) {
+			this->nCnt_RTW[i] ++; // obliviously increase
+		}
 	};
 
 	// Update global counter RRD
 	if (this->spMemCmdPkt->eMemCmd == EMEM_CMD_TYPE_ACT) {
-		this->nCnt_RRD = 1;  // Global. ACT2ACT diff bank
+		this->nCnt_RRD[this->spMemCmdPkt->nBank/BanksPerBGroup] = 1;  // Global. ACT2ACT diff bank
 	}
 	else {
-		this->nCnt_RRD ++; // obliviously increase
+		for (int i=0; i<BANK_NUM/BanksPerBGroup; i++) this->nCnt_RRD[i] ++; // obliviously increase
 	};
 
 	return (ERESULT_TYPE_SUCCESS);

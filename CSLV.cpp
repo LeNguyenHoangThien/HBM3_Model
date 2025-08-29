@@ -517,10 +517,10 @@ EResultType CSLV::Do_AR_fwd_MC_Backend_Response(int64_t nCycle) {
 
 	// Get target bank
 	int nBank = this->cpFIFO_AR->GetTop()->cpAR->GetBankNum_MMap();
-
+	
 	// Check R sent
 	SPMemStatePkt spMemStatePkt = this->cpMem->GetMemStatePkt();
-	if (spMemStatePkt->IsFirstData_ready[nBank] == ERESULT_TYPE_NO) { // Target bank can put first data
+	if (spMemStatePkt->IsFirstData_Read_ready[nBank] == ERESULT_TYPE_NO) { // Target bank can put first data
 		return (ERESULT_TYPE_FAIL);
 	};
 
@@ -716,22 +716,24 @@ EResultType CSLV::Do_Ax_fwd_MC_Backend_Request(int64_t nCycle) {
 		return (ERESULT_TYPE_SUCCESS);
 	};
 	
-	// Get mem state
-	SPMemStatePkt spMemStatePkt = this->cpMem->GetMemStatePkt();
-
 	// Set mem state
+	SPMemCmdPkt spMemCmdPkt = new SMemCmdPkt;
+	SPMemStatePkt spMemStatePkt = new tagSMemStatePkt;
+
+	if (this->cpQ_AR->IsEmpty() != ERESULT_TYPE_YES) {
+		spMemStatePkt = this->cpMem->GetMemStatePkt();
+	}
+	else if (this->cpQ_AW->IsEmpty() != ERESULT_TYPE_YES) {
+		spMemStatePkt = this->cpMem->GetMemStatePkt();
+	}
+	else {
+		//spMemStatePkt_AW = this->cpMem->GetMemStatePkt(); // Unused because empty, but needed for GetScheduledMUD
+	};
+
+
 	// Set cmd for all entries Q 
 	this->cpQ_AR->SetMemStateCmdPkt(spMemStatePkt);
 	this->cpQ_AW->SetMemStateCmdPkt(spMemStatePkt);
-
-	////DUONGTRAN DEBUG .....
-	//printf("Before priting cpQ_AW ...................\n");
-	//this->cpQ_AW->Display();
-	//printf("Before priting cpQ_AR ...................\n");
-	//this->cpQ_AR->Display();
-	//if (nCycle == 23575621 or nCycle == 18845869) {
-	//	printf("DUONGTRAN DEBUG ...................\n");
-	//}
 
 	// Schedule
 	#ifdef BANK_HIT_FIRST
@@ -742,9 +744,6 @@ EResultType CSLV::Do_Ax_fwd_MC_Backend_Request(int64_t nCycle) {
 	#endif
 
 	// Get cmd
-	// SPMemCmdPkt spMemCmdPkt = new SMemCmdPkt;  // FIXME Should delete somewhere
-	SPMemCmdPkt spMemCmdPkt = this->spMemCmdPkt;
-
 	if (spScheduledMUD != NULL) {	
 		spMemCmdPkt = spScheduledMUD->spMemCmdPkt;
 	} 
@@ -762,15 +761,13 @@ EResultType CSLV::Do_Ax_fwd_MC_Backend_Request(int64_t nCycle) {
 
 	// Stat
 	string cCmd = Convert_eMemCmd2string(spMemCmdPkt->eMemCmd);
-	// string cDir = Convert_eUDType2string(spScheduledMUD->eUDType);
 
 	// Stat
-	//if (spMemCmdPkt->eMemCmd != EMEM_CMD_TYPE_NOP) {
 	if (eMemCmd != EMEM_CMD_TYPE_NOP) {
 		if (spScheduledMUD != NULL and spScheduledMUD->eUDType == EUD_TYPE_AR) {
 		
 			#ifdef DEBUG_SLV	
-			// printf("[Cycle %3ld: SLV.Do_Ax_fwd_MC_Backend_Request] MC cmd %s (%s)(Bank %d, Row 0x%x) sent to bank %d, row 0x%x \n", nCycle, cCmd.c_str(), spScheduledMUD->upData->cpAR->GetName().c_str(), spMemCmdPkt->nBank, spMemCmdPkt->nRow, spMemCmdPkt->nBank, cpMem->cpBank[spMemCmdPkt->nBank]->GetActivatedRow());
+			printf("[Cycle %3ld: SLV.Do_Ax_fwd_MC_Backend_Request] MC cmd %s (%s)(Bank %d, Row 0x%x) sent to bank %d, row 0x%x \n", nCycle, cCmd.c_str(), spScheduledMUD->upData->cpAR->GetName().c_str(), spMemCmdPkt->nBank, spMemCmdPkt->nRow, spMemCmdPkt->nBank, cpMem->cpBank[spMemCmdPkt->nBank]->GetActivatedRow());
 			#endif
 
 			// Stat
@@ -784,7 +781,7 @@ EResultType CSLV::Do_Ax_fwd_MC_Backend_Request(int64_t nCycle) {
 		if (spScheduledMUD != NULL and spScheduledMUD->eUDType == EUD_TYPE_AW) {
 
 			#ifdef DEBUG_SLV
-			// printf("[Cycle %3ld: SLV.Do_Ax_fwd_MC_Backend_Request] MC cmd %s (%s)(Bank %d, Row 0x%x) sent to bank %d, row 0x%x \n", nCycle, cCmd.c_str(), spScheduledMUD->upData->cpAR->GetName().c_str(), spMemCmdPkt->nBank, spMemCmdPkt->nRow, spMemCmdPkt->nBank, cpMem->cpBank[spMemCmdPkt->nBank]->GetActivatedRow());
+			printf("[Cycle %3ld: SLV.Do_Ax_fwd_MC_Backend_Request] MC cmd %s (%s)(Bank %d, Row 0x%x) sent to bank %d, row 0x%x \n", nCycle, cCmd.c_str(), spScheduledMUD->upData->cpAR->GetName().c_str(), spMemCmdPkt->nBank, spMemCmdPkt->nRow, spMemCmdPkt->nBank, cpMem->cpBank[spMemCmdPkt->nBank]->GetActivatedRow());
 			#endif
 
 			// Stat
@@ -814,7 +811,7 @@ EResultType CSLV::Do_Ax_fwd_MC_Backend_Request(int64_t nCycle) {
 		this->nTotal_Q_AR_Scheduled_Wait += spScheduledMUD->nCycle_wait;
 
 		#ifdef DEBUG_SLV
-		printf("[Cycle %3ld: SLV.Do_Ax_fwd_MC_Backend_Request] %d cycles wait req Q_AR scheduled (%s) \n", nCycle, spScheduledMUD->nCycle_wait, spScheduledMUD->upData->cpAR->GetName().c_str());
+		// printf("[Cycle %3ld: SLV.Do_Ax_fwd_MC_Backend_Request] %d cycles wait req Q_AR scheduled (%s) \n", nCycle, spScheduledMUD->nCycle_wait, spScheduledMUD->upData->cpAR->GetName().c_str());
 		#endif
 
 		// Pop AR
@@ -856,7 +853,7 @@ EResultType CSLV::Do_Ax_fwd_MC_Backend_Request(int64_t nCycle) {
 		this->nTotal_Q_AW_Scheduled_Wait += spScheduledMUD->nCycle_wait;
 
 		#ifdef DEBUG_SLV
-		printf("[Cycle %3ld: SLV.Do_Ax_fwd_MC_Backend_Request] %d cycles wait req Q_AW scheduled (%s) \n", nCycle, spScheduledMUD->nCycle_wait, spScheduledMUD->upData->cpAW->GetName().c_str());
+		// printf("[Cycle %3ld: SLV.Do_Ax_fwd_MC_Backend_Request] %d cycles wait req Q_AW scheduled (%s) \n", nCycle, spScheduledMUD->nCycle_wait, spScheduledMUD->upData->cpAW->GetName().c_str());
 		#endif
 
 		// Pop AW
@@ -915,7 +912,7 @@ EResultType CSLV::Do_AW_fwd_MC_Backend_Response(int64_t nCycle) {
 
 	// Check B sent
 	SPMemStatePkt spMemStatePkt = this->cpMem->GetMemStatePkt();
-	if (spMemStatePkt->IsFirstData_ready[nBank] == ERESULT_TYPE_NO) {
+	if (spMemStatePkt->IsFirstData_Write_ready[nBank] == ERESULT_TYPE_NO) {
 		return (ERESULT_TYPE_FAIL);
 	};
 

@@ -443,8 +443,10 @@ int main() {
 
 		#ifdef MEMORY_CONTROLLER
 		cpSLV->Do_Ax_fwd_MC_Backend_Request(nCycle);
-		cpSLV->Do_AR_fwd_MC_Backend_Response(nCycle);
-		cpSLV->Do_AW_fwd_MC_Backend_Response(nCycle);
+		for (int i = 0; i < BANK_NUM; i++) {
+			cpSLV->Do_AR_fwd_MC_Backend_Response(nCycle);
+			cpSLV->Do_AW_fwd_MC_Backend_Response(nCycle);
+		}
 		#endif
 
 		//---------------------------------

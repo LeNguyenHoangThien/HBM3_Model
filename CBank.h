@@ -44,11 +44,12 @@ public:
 	EMemStateType	GetMemState();	
 	int		GetActivatedRow();
 
-	EResultType	IsRD_ready();		// This bank can get RD cmd.
-	EResultType	IsWR_ready();
+	EResultType	IsRD_ready(int nCnt_CCD_max=tCCD);		// This bank can get RD cmd.
+	EResultType	IsWR_ready(int nCnt_CCD_max=tCCD);
 	EResultType	IsPRE_ready();
 	EResultType	IsACT_ready();
-	EResultType	IsFirstData_ready();	// This bank can put first data.
+	EResultType	IsFirstData_Read_ready();	// This bank can put first data.
+	EResultType	IsFirstData_Write_ready();	// This bank can put first data.
 	EResultType	IsBankPrepared();	// This bank is activated. 
 	
 	// Control
@@ -64,34 +65,38 @@ public:
 
 private:
 	// Original
-	string		cName;			// Bank name
+	string			cName;				// Bank name
 
 	// Control cmd
-	EMemCmdType	eMemCmd;		// Set by MC 
-	int		nBankCmd;
-	int		nRowCmd;
+	EMemCmdType		eMemCmd;			// Set by MC 
+	int				nBankCmd;
+	int				nRowCmd;
 
 	// Control state
 	EMemStateType	eMemState;
-	int		nActivatedRow;		// Active row number
+	int				nActivatedRow;		// Active row number
 
-	int		nCnt_RP; 		// PRE2ACT.        Per-bank. Auto (Precharging)
-	int		nCnt_RAS;		// ACT2PRE.        Per-bank (wait PRE).
-	int		nCnt_RCD;		// ACT2RD. ACT2WR. Per-bank. Auto (Activating). Register
+	int				nCnt_RP; 			// PRE2ACT.        Per-bank. Auto (Precharging)
+	int				nCnt_RAS;			// ACT2PRE.        Per-bank (wait PRE).
+	int				nCnt_RCD;			// ACT2RD. ACT2WR. Per-bank. Auto (Activating). Register
 
-	int		nCnt_RTP;		// RD2PRE.         Per-bank (wait PRE)
-	int		nCnt_WR; 		// WR2PRE.         Per-bank (wait PRE)
+	int				nCnt_RTP;			// RD2PRE.         Per-bank (wait PRE)
+	int				nCnt_WR; 			// WR2PRE.         Per-bank (wait PRE)
 
-	int		nCnt_CL; 		// RD2DATA.        Per-bank (wait data)  Also global
-	int		nCnt_WL; 		// WR2DATA.        Per-bank (wait data)  Also global
+	int				nCnt_RL; 			// RD2DATA.        Per-bank (wait data)  Also global
+	int             nCnt_RL_ongoing[tRL];   	// number of ongoing read commands
+	int             ongoing_read;   	// number of ongoing read commands
+	int				nCnt_WL; 			// WR2DATA.        Per-bank (wait data)  Also global
+	int             nCnt_WL_ongoing[tWL];  	// number of ongoing read commands
+	int             ongoing_write;   	// number of ongoing read commands
 
-	int		nCnt_CCD;		// RD2RD. WR2WR.   Per-bank (wait RD/WR) Also global
+	int				nCnt_CCD;			// RD2RD. WR2WR.   Per-bank (wait RD/WR) Also global
 
-	EResultType	IsCmd_overlap_r;	// Doing service for two RD or WR cmds. Register
-	EResultType	IsBankPrepared_r;	// Bank prepared (PRE, ACT). Not yet RD/WR 
+	EResultType		IsCmd_overlap_r;	// Doing service for two RD or WR cmds. Register
+	EResultType		IsBankPrepared_r;	// Bank prepared (PRE, ACT). Not yet RD/WR 
 
 	// Stat
-	int		nCnt_Data;		// Data counter for transaction under service		
+	int				nCnt_Data;			// Data counter for transaction under service		
 };
 
 #endif

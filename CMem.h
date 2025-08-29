@@ -41,10 +41,13 @@ public:
 	string		GetName();
 
 	SPMemStatePkt	GetMemStatePkt();
+	int 		Get_tCCD(int bank, int nbank);	// Get CCD timing based on current configuration
+	int 		Get_tRRD(int bank, int nbank);	// Get RRD timing based on current configuration
+	int 		Get_tWTR(int bank, int nbank);	// Get WTR timing based on current configuration
 
-	EResultType	IsRD_global_ready();						// Global CCD (RD2RD)
-	EResultType	IsWR_global_ready();						// Global CCD (WR2WR)
-	EResultType	IsACT_global_ready();						// Global RRD (ACT2ACT)
+	EResultType	IsRD_global_ready(int bank);						// Global CCD (RD2RD)
+	EResultType	IsWR_global_ready(int bank);						// Global CCD (WR2WR)
+	EResultType	IsACT_global_ready(int bank);						// Global RRD (ACT2ACT)
 	// EResultType	IsFirstData_global_ready();
 	// EResultType	IsData_global_busy();
 	
@@ -63,15 +66,18 @@ private:
 	string		cName;								// Mem name
 
 	// Cmd 
-	SPMemCmdPkt	spMemCmdPkt;							// cmd, addr
+	SPMemCmdPkt	spMemCmdPkt;						// cmd, addr
 	
 	// Mem status
-	SPMemStatePkt	spMemStatePkt;							// state, ready (RD,ACT,PRE,DATA), ActivatedRow
+	SPMemStatePkt	spMemStatePkt;					// state, ready (RD,ACT,PRE,DATA), ActivatedRow
 
 	// Control state
-	int		nCnt_CCD;							// Global. RD2RD. WR2WR	(all banks)
-	int		nCnt_RRD;							// Global. ACT2ACT (all banks)	
-	// int		nCnt_RD2Data;							// Cycle counter to wait for data
+	int		nCnt_CCD[BANK_NUM/BanksPerBGroup];		// Bank Group. RD2RD. WR2WR
+	int		nCnt_RRD[BANK_NUM/BanksPerBGroup];		// Bank Group. ACT2ACT
+	int		nCnt_WTR[BANK_NUM/BanksPerBGroup];		// Bank Group. WR2RD
+	int		nCnt_RTW[BANK_NUM/BanksPerBGroup];		// Bank Group. RD2WR
+
+	// int		nCnt_RD2Data;						// Cycle counter to wait for data
 };
 
 #endif

@@ -670,7 +670,7 @@ int GetChannelNum_MMap_Global(int64_t nAddr) {
 	assert (MEM_CH_WIDTH >= 0);
 	assert (MEM_CH_WIDTH <= 3);
 	assert (BANK_WIDTH >= 0);
-	assert (BANK_WIDTH <= 3);
+	assert (BANK_WIDTH <= 31);
 	#endif
 
 #ifdef RMBC

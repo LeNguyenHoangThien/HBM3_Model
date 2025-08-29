@@ -809,6 +809,7 @@ EResultType CBuddy::Do_Allocate(int64_t ORIGINAL_VPN, int NUM_REQ_PAGES) {
 // ----------------------------------------------
 // Measure the average address coverage in a PTE
 // ----------------------------------------------
+/*
 float CBuddy::GetAvgAddrCovrPTE(){
 	int32_t sum = 0;
 	float avg = 0.0f;
@@ -835,7 +836,7 @@ float CBuddy::GetAvgAddrCovrPTE(){
 	avg = (float)sum / NUM_REQUESTED_PAGES;
 	return avg;
 }
-
+*/
 
 //----------------------------------------------------------
 // De-allocate
