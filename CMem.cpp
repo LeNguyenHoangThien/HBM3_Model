@@ -274,6 +274,7 @@ SPMemStatePkt CMem::GetMemStatePkt() {
 		this->spMemStatePkt->IsWR_ready[i]         = this->cpBank[i]->IsWR_ready();
 		this->spMemStatePkt->IsPRE_ready[i]        = this->cpBank[i]->IsPRE_ready();
 		this->spMemStatePkt->IsACT_ready[i]        = this->cpBank[i]->IsACT_ready();
+		this->spMemStatePkt->forced_PRE[i]         = this->cpBank[i]->forced_PRE();
 		this->spMemStatePkt->IsFirstData_Read_ready[i]  = this->cpBank[i]->IsFirstData_Read_ready();
 		this->spMemStatePkt->IsFirstData_Write_ready[i] = this->cpBank[i]->IsFirstData_Write_ready();
 		this->spMemStatePkt->IsBankPrepared[i]     = this->cpBank[i]->IsBankPrepared();

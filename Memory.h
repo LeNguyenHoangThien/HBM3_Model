@@ -43,7 +43,7 @@
 // tRFCpb	: PER BANK REFRESH command period (same bank).
 // tRREFD	: PER BANK REFRESH command period (different bank).
 // tREFI	: PER BANK REFRESH to ACTIVATE command delay (different bank).
-// tREFIpb	: Average periodic refresh interval for REFRESH command.
+// tREFIab	: Average periodic refresh interval for REFRESH command.
 // tREFIpb	: Average periodic refresh interval for PER BANK REFRESH command.
 // 
 // FAW		: Four Bank Active Window.
@@ -74,10 +74,10 @@
   #define BanksPerSID		16					  // Number of banks per stack. HBM3 has 16 banks per stack.
 
   // Row Access Timing Parameters
-  #define tRP		    static_cast<int>(std::ceil(15/tCK))-2				  // (Min) PRE2ACT - Plus 1 due to the ACT command takes 2 CK cycles to complete
+  #define tRP		    static_cast<int>(std::ceil(15/tCK))-1				  // (Min) PRE2ACT - Plus 1 due to the ACT command takes 2 CK cycles to complete
   #define tRAS	    static_cast<int>(std::ceil(33/tCK))+1			    // (Min) ACT2PRE - Plus 1 due to the ACT command takes 2 CK cycles to complete
   #define tRAS_max	9*tREFI				                                // (Max) ACT2PRE
-  #define tRC		    static_cast<int>(std::ceil((tRAS+tRP)/tCK))		// RC = RAS + RP.  ACT2ACT. Inherently implemented
+  #define tRC		    tRAS+tRP                                  		// RC = RAS + RP.  ACT2ACT. Inherently implemented
 
   #define tRCDRD	static_cast<int>(std::ceil(12/tCK))				  // ACT2RD or ACT2WR - Copied from Gem5's HBM2: https://github.com/gem5/gem5/blob/ddd4ae35adb0a3df1f1ba11e9a973a5c2f8c2944/src/python/gem5/components/memory/dram_interfaces/hbm.py#L207
   #define tRCDWR	static_cast<int>(std::ceil(6/tCK))					// ACT2RD or ACT2WR - Copied from Gem5's HBM2: https://github.com/gem5/gem5/blob/ddd4ae35adb0a3df1f1ba11e9a973a5c2f8c2944/src/python/gem5/components/memory/dram_interfaces/hbm.py#L207
@@ -115,8 +115,11 @@
                                                                                                                                     // tRTW is not a DRAM device limit but determined by the system bus turnaround time.
     
   #define tFAW				20		// Not implemented. We do not need this, because we have 4 banks.
-  #define tRFC				36		// Not implemented
-  #define tREFI				std::ceil(3900/tCK)	// Average refresh interval. Not implemented.
+  #define tREFI				static_cast<int>(std::floor(3900/tCK))	// (Max Value) Average refresh interval. Not implemented.
+  #define tREFIpb			static_cast<int>(std::floor(tREFI/48))  // (Max Value) Average periodic refresh interval for PER BANK REFRESH command. Not implemented.
+  #define tRFCab			static_cast<int>(std::ceil(350/tCK))	  // (Min Value) Not implemented
+  #define tRFCpb			static_cast<int>(std::ceil(200/tCK))	  // (Min Value) Not implemented
+  #define tRREFD			std::max(3, static_cast<int>(std::ceil(8/tCK)))		 // Not implemented
 
 //-------------------------------------------------
 
@@ -127,6 +130,7 @@ using namespace std;
 //-------------------------------------------------
 typedef enum{
 	EMEM_STATE_TYPE_IDLE,
+  EMEM_STATE_TYPE_REFRESHING,			  // Doing activation
 	EMEM_STATE_TYPE_ACTIVATING,			  // Doing activation
 	EMEM_STATE_TYPE_ACTIVE_for_READ,	// Activated
   EMEM_STATE_TYPE_ACTIVE_for_WRITE,	// Activated
@@ -172,6 +176,7 @@ typedef struct tagSMemStatePkt{
 	EResultType	IsWR_ready[BANK_NUM];
 	EResultType	IsPRE_ready[BANK_NUM];
 	EResultType	IsACT_ready[BANK_NUM];
+  EResultType	forced_PRE[BANK_NUM];
 	
 	EResultType	IsFirstData_Read_ready[BANK_NUM];	// Can put first data in bank
   EResultType	IsFirstData_Write_ready[BANK_NUM];	// Can put first data in bank

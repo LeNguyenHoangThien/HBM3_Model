@@ -298,6 +298,15 @@ EResultType CQ::SetMemStateCmdPkt(SPMemStatePkt spThis) {
 		spTarget = spScan;
 		spScan   = spScan->spNext;
 		// spTarget->spMemCmdPkt = this->GetMemCmdPkt(spTarget);	// FIXME Check spMemCmdPkt new. Be careful memory leak
+		
+		for(int i = 0; i < BANK_NUM; i++) {
+			if (this->spMemStatePkt->forced_PRE[i] == ERESULT_TYPE_YES) {
+				spTarget->spMemCmdPkt->eMemCmd = EMEM_CMD_TYPE_PRE;
+				spTarget->spMemCmdPkt->nBank = i;
+				spTarget->spMemCmdPkt->nRow = 0; // PRE has no row info
+				return (ERESULT_TYPE_SUCCESS);
+			}
+		}
 
 		// Get target bank row
 		if (this->eUDType == EUD_TYPE_AR) {
@@ -357,7 +366,7 @@ EMemCmdType CQ::GetMemCmd(SPLinkedMUD spThis) {
 	EResultType eIsPRE_ready = this->spMemStatePkt->IsPRE_ready[nBank];
 	EResultType eIsRD_ready  = this->spMemStatePkt->IsRD_ready[nBank];
 	EResultType eIsWR_ready  = this->spMemStatePkt->IsWR_ready[nBank];
-	
+
 	// Check RD issueable
 	if (eIsRD_ready == ERESULT_TYPE_YES and this->eUDType == EUD_TYPE_AR) {
 		// Check bank hit

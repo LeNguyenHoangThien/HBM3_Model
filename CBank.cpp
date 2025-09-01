@@ -382,12 +382,29 @@ EResultType CBank::IsPRE_ready() {
 EResultType CBank::IsACT_ready() {
 
 	// Check state	
-	if (this->eMemState == EMEM_STATE_TYPE_IDLE) { 
+	if (this->eMemState == EMEM_STATE_TYPE_IDLE and nCnt_ACT_cmd <= 4) { 
 
 		#ifdef DEBUG
 		assert (this->GetActivatedRow() == -1);
 		#endif
 
+		return (ERESULT_TYPE_YES);
+	};
+
+	return (ERESULT_TYPE_NO);	
+};
+
+//--------------------------------------
+// Force the MC issuing a PRE command
+//--------------------------------------
+EResultType CBank::forced_PRE() {
+
+	// Check state	
+	if (this->nCnt_RAS >= static_cast<int>(std::ceil(tRAS_max*0.8))) {  // The nCnt_RAS > 0 only if it is activated
+
+		#ifdef DEBUG
+		assert (this->GetActivatedRow() != -1);
+		#endif
 		return (ERESULT_TYPE_YES);
 	};
 
@@ -415,6 +432,8 @@ EResultType CBank::UpdateState() {
 	#ifdef DEBUG
 	// this->CheckCnt();
 	this->CheckCmdReady();
+	assert (this->nCnt_RAS <= tRAS_max); // Always Check Condition - ACT2PRE
+	assert (this->nCnt_ACT_cmd <= 4); // Always Check Condition - tFAW
 	#endif
 
 	//------------------------------------
@@ -423,22 +442,25 @@ EResultType CBank::UpdateState() {
 	if (this->eMemState == EMEM_STATE_TYPE_IDLE) {
 
 		#ifdef DEBUG
-		assert (this->eMemCmd == EMEM_CMD_TYPE_ACT or this->eMemCmd == EMEM_CMD_TYPE_NOP);
-		assert (this->nActivatedRow == -1);
-		assert (this->nCnt_RCD  == 0);					// (Start increase) ACT2RD. ACT2WR. Activating.
-		assert (this->nCnt_RAS  == 0);					// (Start increase) ACT2PRE
-		assert (this->nCnt_RL   == 0);  				// RD2DATA
-		assert (this->nCnt_WL   == 0);  				// WR2DATA
-		assert (this->nCnt_CCD  == 0);  				// RD2RD. WR2WR.
-		assert (this->nCnt_RTP  == 0);  				// RD2PRE
-		assert (this->nCnt_WR   == 0);  				// WR2PRE
-		assert (this->nCnt_RP   == tRP);      			// (Reset) PRE2ACT. Precharging.
+		assert (this->eMemCmd == EMEM_CMD_TYPE_ACT or this->eMemCmd == EMEM_CMD_TYPE_NOP); // Only allow for receiving the ACT or NOP
+		assert (this->nActivatedRow == -1);				// No row is activated
+		assert (this->nCnt_RCD  == 0);					// (Start increase) ACT2RD. ACT2WR: No-Operation
+		assert (this->nCnt_RAS  == 0);					// (Start increase) ACT2PRE: No-Operation
+		assert (this->nCnt_RL   == 0);  				// RD2DATA: No-Operation
+		assert (this->nCnt_WL   == 0);  				// WR2DATA: No-Operation
+		assert (this->nCnt_CCD  == 0);  				// RD2RD. WR2WR: No-Operation
+		assert (this->nCnt_RTP  == 0);  				// RD2PRE: No-Operation
+		assert (this->nCnt_WR   == 0);  				// WR2PRE: No-Operation
+		assert (this->nCnt_RP   == tRP);      			// (Reset) PRE2ACT. Precharging: No-Operation
 		#endif
 
 		if (this->eMemCmd == EMEM_CMD_TYPE_ACT) {
 
 			this->eMemState = EMEM_STATE_TYPE_ACTIVATING;
 
+			#ifdef DEBUG
+			assert (this->nCnt_RC   == 0);   		     	// (Reset) ACT2ACT.
+			#endif
 		} else if (this->eMemCmd == EMEM_CMD_TYPE_NOP) { 
 
 			this->eMemState = EMEM_STATE_TYPE_IDLE;
@@ -453,7 +475,8 @@ EResultType CBank::UpdateState() {
 		assert (this->eMemCmd == EMEM_CMD_TYPE_NOP);
 		assert (this->nActivatedRow == -1);
 		assert (this->nCnt_RCD > 0 or this->nCnt_RCD < tRCD);		// (Min) ACT2RD, ACT2WR	: The counter still increase when the Bank is ativating and reseted when it reach the max value.
-		assert (this->nCnt_RAS > 0 or this->nCnt_RAS < tRAS);		// (Min) ACT2PRE: 		: The counter still increase when the Bank is ativating.
+		assert (this->nCnt_RAS > 0 or this->nCnt_RAS < tRAS);		// (Min) ACT2PRE 		: The counter still increase when the Bank is ativating.
+		assert (this->nCnt_RC  > 0 or this->nCnt_RC < tRC);      	// (Reset) ACT2ACT		: The counter still increase when the Bank is ativating.
 		assert (this->nCnt_RL  == 0);								// RD2DATA				: No-Operation
 		assert (this->nCnt_WL  == 0);								// WR2DATA				: No-Operation
 		assert (this->nCnt_CCD == 0);								// RD2RD, WR2WR			: No-Operation
@@ -488,6 +511,7 @@ EResultType CBank::UpdateState() {
 
 		assert (this->nCnt_RCD >  0 or this->nCnt_RCD <  tRCD);		// (Min) ACT2RD, ACT2WR	: Continue counting the time for ACT2RD, ACT2WR in case one of them is not finished.
 		assert (this->nCnt_RAS >  0 or this->nCnt_RAS <  tRAS);		// ACT2PRE				: Continue counting the time for ACT2PRE
+		assert (this->nCnt_RC  >  0 or this->nCnt_RC  <  tRC);      // (Reset) ACT2ACT		: Continue counting the time for ACT2ACT
 		assert (this->nCnt_RL  == 0 or this->nCnt_RL  <= tRL);		// RD2DATA				: Start counter for Read Latency
 		assert (this->nCnt_WL  == 0 or this->nCnt_WL  <= tWL);		// WR2DATA				: Start counter for Write Latency
 		assert (this->nCnt_CCD == 0 or this->nCnt_CCD <= tCCD);		// RD2RD, WR2WR			: Start counter for CAS to CAS command delay
@@ -529,7 +553,6 @@ EResultType CBank::UpdateState() {
 			#ifdef DEBUG
 			// The DRAM bank is able to receive the PRECHARGE.
 			assert (this->nCnt_RAS >= tRAS);
-			//assert (this->nCnt_RAS <= tRAS_max);
 			assert (this->nCnt_RTP >= 0 or this->nCnt_RTP >= tRTP);
 			assert (this->nCnt_WR  == 0 or this->nCnt_WR  >= tWR);
 			#endif
@@ -592,12 +615,14 @@ EResultType CBank::UpdateState() {
 		assert (this->nActivatedRow == -1);	// No activated row
 		assert (this->nCnt_RCD == 0);		// (Min) ACT2RD, ACT2WR	: No-Operation
 		assert (this->nCnt_RAS == 0);		// (Min) ACT2PRE		: Finished. Successfully receive PRE command.
+		assert (this->nCnt_RC  >= 0 or
+			    this->nCnt_RC  >= tRC); 	// (Reset) ACT2ACT      : Continue uncreasing the counter for ACT2ACT
 		assert (this->nCnt_RL  == 0);		// RD2DATA				: No-Operation
 		assert (this->nCnt_WL  == 0);		// WR2DATA				: No-Operation
 		assert (this->nCnt_CCD == 0);		// (Min) RD2RD, WR2WR	: No-Operation
 		assert (this->nCnt_RTP == 0);		// RD2PRE				: Finished. Successfully receive PRE command.
 		assert (this->nCnt_WR  == 0);		// WR2PRE				: Finished. Successfully receive PRE command.
-		assert (this->nCnt_RP > 0);			// PRE2ACT				: Precharging
+		assert (this->nCnt_RP  >  0);		// PRE2ACT				: Precharging
 		#endif
 
 		if (this->nCnt_RP < tRP) { // PRE2ACT. Precharge on going
@@ -671,7 +696,29 @@ EResultType CBank::UpdateState() {
 	// Counter
 	// 	Counter value is dependent on cmd and counter value
 	//--------------------------------------------------
-	
+	//--------------------------------------------------
+	// Accumulative ACT commands
+	//--------------------------------------------------
+	//	Initially, 0
+	//	Min 0, Max 4
+	//	At ACT,    start increase 
+	//	At tFAW-1, reset 0
+	//--------------------------------------------------
+	if (this->eMemCmd == EMEM_CMD_TYPE_ACT and this->nCnt_ACT_cmd == 0) {
+		this->nCnt_FAW = 1;				// Start increase
+	} 
+	else if (this->nCnt_FAW == tFAW) {		// FAW window finish 
+		this->nCnt_FAW = 0;				// Reset 
+		this->nCnt_ACT_cmd = 0;			// Reset 
+	} 
+	else if (this->nCnt_FAW >= 1 and this->nCnt_FAW < tFAW) {	// FAW window on-going 
+		this->nCnt_FAW ++;				// Increase
+	};
+
+	if (this->eMemCmd == EMEM_CMD_TYPE_ACT) {
+		this->nCnt_ACT_cmd ++;				// Start increase
+	}
+
 	//--------------------------------------------------
 	// RCD (ACT2RD. ACT2WR) Activating. Auto state change
 	//--------------------------------------------------
@@ -690,6 +737,22 @@ EResultType CBank::UpdateState() {
 		this->nCnt_RCD ++;					// Increase
 	};
 
+	//--------------------------------------------------
+	// RC (ACT2ACT)
+	//--------------------------------------------------
+	//	Initially, 0
+	//	Min 0, Max any
+	//	At ACT, start increase
+	//	At tRC-1, reset 0
+	//--------------------------------------------------
+	if (this->eMemCmd == EMEM_CMD_TYPE_ACT) {
+		this->nCnt_RC = 1;					/// Start increase	
+	} else if (this->nCnt_RC == tRC) {
+		this->nCnt_RC = 0;					/// Reset 
+	}
+	else if (this->nCnt_RC >= 1) {
+		this->nCnt_RC ++;					/// Increase
+	};
 
 	//--------------------------------------------------
 	// RP (PRE2ACT) Precharging. Auto state change
@@ -708,7 +771,6 @@ EResultType CBank::UpdateState() {
 	else if (this->nCnt_RP >= 1 and this->nCnt_RP < tRP) {		// Precharging on-going 
 		this->nCnt_RP ++;					// Increase
 	};
-
 
 	//--------------------------------------------------
 	// RAS (ACT2PRE)

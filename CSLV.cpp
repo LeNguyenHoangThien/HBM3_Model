@@ -460,7 +460,7 @@ EResultType CSLV::Do_AR_fwd_MC_Frontend(int64_t nCycle) {
 	this->cpRx_AR->PutAx(cpAR);
 
 	#ifdef DEBUG_SLV
-	printf("[Cycle %3ld: SLV.Do_AR_fwd_MC_Frontend] (%s) access to 0x%lx, put Rx_AR.\n", nCycle, cpAR->GetName().c_str(), cpAR->GetAddr());
+	//printf("[Cycle %3ld: SLV.Do_AR_fwd_MC_Frontend] (%s) access to 0x%lx, put Rx_AR.\n", nCycle, cpAR->GetName().c_str(), cpAR->GetAddr());
 	// cpAR->Display();
 	#endif
 
@@ -988,7 +988,7 @@ EResultType CSLV::Do_AR_bwd(int64_t nCycle) {
 		#ifdef DEBUG_SLV
 		CPAxPkt cpAR = this->cpRx_AR->GetAx();
 		string cARPktName = cpAR->GetName();
-		printf("[Cycle %3ld: SLV.Do_AR_bwd] (%s) handshake Rx_AR.\n", nCycle, cARPktName.c_str());
+		// printf("[Cycle %3ld: SLV.Do_AR_bwd] (%s) handshake Rx_AR.\n", nCycle, cARPktName.c_str());
 		// cpAR->Display();
 		#endif
 	};
@@ -1014,7 +1014,7 @@ EResultType CSLV::Do_AW_bwd(int64_t nCycle) {
 		#ifdef DEBUG_SLV	
 		CPAxPkt cpAW = this->cpRx_AW->GetAx();
 		string cAWPktName = cpAW->GetName();
-		printf("[Cycle %3ld: SLV.Do_AW_bwd] (%s) handshake Rx_AW.\n", nCycle, cAWPktName.c_str());
+		//printf("[Cycle %3ld: SLV.Do_AW_bwd] (%s) handshake Rx_AW.\n", nCycle, cAWPktName.c_str());
 		// cpAW->Display();
 		#endif
 		
@@ -1043,7 +1043,7 @@ EResultType CSLV::Do_W_bwd(int64_t nCycle) {
 		#ifdef DEBUG_SLV	
 		CPWPkt cpW = this->cpRx_W->GetW();
 		string cWPktName = cpW->GetName();
-		printf("[Cycle %3ld: SLV.Do_W_bwd] (%s) handshake Rx_W.\n", nCycle, cWPktName.c_str());
+		//printf("[Cycle %3ld: SLV.Do_W_bwd] (%s) handshake Rx_W.\n", nCycle, cWPktName.c_str());
 		// cpW->Display();
 		#endif
 		
@@ -1089,9 +1089,9 @@ EResultType CSLV::Do_R_fwd(int64_t nCycle) {
 
 	#ifdef DEBUG_SLV
 	if (cpR_new->IsLast() == ERESULT_TYPE_YES) {
-		printf("[Cycle %3ld: SLV.Do_R_fwd] (%s) RID 0x%x RLAST put Tx_R.\n", nCycle, cpR_new->GetName().c_str(), cpR_new->GetID());
+		//printf("[Cycle %3ld: SLV.Do_R_fwd] (%s) RID 0x%x RLAST put Tx_R.\n", nCycle, cpR_new->GetName().c_str(), cpR_new->GetID());
 	} else {
-		printf("[Cycle %3ld: SLV.Do_R_fwd] (%s) RID 0x%x put Tx_R.\n", nCycle, cpR_new->GetName().c_str(), cpR_new->GetID());
+		//printf("[Cycle %3ld: SLV.Do_R_fwd] (%s) RID 0x%x put Tx_R.\n", nCycle, cpR_new->GetName().c_str(), cpR_new->GetID());
 	}
 	// cpR_new->Display();
 	#endif
@@ -1137,7 +1137,7 @@ EResultType CSLV::Do_B_fwd(int64_t nCycle) {
 	this->cpTx_B->PutB(cpB_new);
 
 	#ifdef DEBUG_SLV
-	printf("[Cycle %3ld: SLV.Do_B_fwd] (%s) BID 0x%x put Tx_B.\n", nCycle, cpB_new->GetName().c_str(), cpB_new->GetID());
+	//printf("[Cycle %3ld: SLV.Do_B_fwd] (%s) BID 0x%x put Tx_B.\n", nCycle, cpB_new->GetName().c_str(), cpB_new->GetID());
 	// cpB_new->Display();
 	#endif
 	
@@ -1165,13 +1165,13 @@ EResultType CSLV::Do_R_bwd(int64_t nCycle) {
 		if (cpR->IsLast() == ERESULT_TYPE_YES) {
 
 			#ifdef DEBUG_SLV
-			printf("[Cycle %3ld: SLV.Do_R_bwd] (%s) RID 0x%x handshake Tx_R.\n", nCycle, cRPktName.c_str(), cpR->GetID());
+			//printf("[Cycle %3ld: SLV.Do_R_bwd] (%s) RID 0x%x handshake Tx_R.\n", nCycle, cRPktName.c_str(), cpR->GetID());
 			// cpR->Display();
 			#endif
 		} 
 		else {
 			#ifdef DEBUG_SLV
-			printf("[Cycle %3ld: SLV.Do_R_bwd] (%s) RID 0x%x handshake Tx_R.\n", nCycle, cRPktName.c_str(), cpR->GetID());
+			//printf("[Cycle %3ld: SLV.Do_R_bwd] (%s) RID 0x%x handshake Tx_R.\n", nCycle, cRPktName.c_str(), cpR->GetID());
 			// cpR->Display();
 			#endif
 		};
@@ -1200,7 +1200,7 @@ EResultType CSLV::Do_B_bwd(int64_t nCycle) {
 
 		#ifdef DEBUG_SLV
 		string cBPktName = cpB->GetName();
-		printf("[Cycle %3ld: SLV.Do_B_bwd] (%s) handshake Tx_B.\n", nCycle, cBPktName.c_str());
+		//printf("[Cycle %3ld: SLV.Do_B_bwd] (%s) handshake Tx_B.\n", nCycle, cBPktName.c_str());
 		// cpB->Display();
 		#endif
 

@@ -48,6 +48,7 @@ public:
 	EResultType	IsWR_ready(int nCnt_CCD_max=tCCD);
 	EResultType	IsPRE_ready();
 	EResultType	IsACT_ready();
+	EResultType	forced_PRE();
 	EResultType	IsFirstData_Read_ready();	// This bank can put first data.
 	EResultType	IsFirstData_Write_ready();	// This bank can put first data.
 	EResultType	IsBankPrepared();	// This bank is activated. 
@@ -77,8 +78,11 @@ private:
 	int				nActivatedRow;		// Active row number
 
 	int				nCnt_RP; 			// PRE2ACT.        Per-bank. Auto (Precharging)
+	int				nCnt_RC; 			// ACT2ACT.
 	int				nCnt_RAS;			// ACT2PRE.        Per-bank (wait PRE).
-	int				nCnt_RCD;			// ACT2RD. ACT2WR. Per-bank. Auto (Activating). Register
+	int				nCnt_RCD;			// ACT2RD. ACT2WR. Per-bank. Auto (Activating).
+	int				nCnt_FAW;           // No more than 4 banks may be activated in a rolling tFAW window.
+	int 			nCnt_ACT_cmd;       // Number of ongoing activations in tFAW window
 
 	int				nCnt_RTP;			// RD2PRE.         Per-bank (wait PRE)
 	int				nCnt_WR; 			// WR2PRE.         Per-bank (wait PRE)
