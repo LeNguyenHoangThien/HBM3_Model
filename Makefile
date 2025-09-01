@@ -24,7 +24,7 @@ BBS_PCAD:
 
 # compile BSS Tradition
 BBS_TRAD:
-	g++ -g3 -Wall -fno-stack-protector -DDEBUG -DDEBUG_SLV -D"SEED_INIT=$(SEED_INIT)" -D"TILE_SIZE=$(TILE_SIZE)" -D"$(SCENARIO)" -D"NUM_TOTAL_PAGES=$(NUM_TOTAL_PAGES)" -D"BLOCKSIZE_INIT = $(BLOCKSIZE_INIT)" -D"SINGLE_FETCH" -D"BBS" -D"MAX_ORDER=10" -D"MMU_ON" -D"Cache_OFF" -D"IMG_HORIZONTAL_SIZE = $(IMG_HORIZONTAL_SIZE)" -D"IMG_VERTICAL_SIZE = $(IMG_VERTICAL_SIZE)"  -D"BYTE_PER_PIXEL = 4" -o $(MY_RUN) ./Top.cpp ./Memory.cpp ./CAxPkt.cpp ./CRPkt.cpp ./CWPkt.cpp ./CBPkt.cpp ./UD_Bus.cpp ./CFIFO.cpp ./CTRx.cpp ./CQ.cpp ./CBank.cpp ./CMem.cpp ./CAddrGen.cpp ./CMST.cpp ./CTracker.cpp ./CROB.cpp ./CMIU.cpp ./CMMU.cpp ./CCache.cpp ./CBUS.cpp ./CArb.cpp ./CScheduler.cpp ./CSLV.cpp ./$(MAINFILE) ./Buddy/BuddyTop.cpp ./Buddy/CQueue.cpp ./Buddy/CFreeList.cpp ./Buddy/CBlockList.cpp ./Buddy/CBlockArray.cpp ./Buddy/CPageArray.cpp ./Buddy/CBuddy.cpp
+	g++ -g3 -Wall -fno-stack-protector -DDEBUG -D"SEED_INIT=$(SEED_INIT)" -D"TILE_SIZE=$(TILE_SIZE)" -D"$(SCENARIO)" -D"NUM_TOTAL_PAGES=$(NUM_TOTAL_PAGES)" -D"BLOCKSIZE_INIT = $(BLOCKSIZE_INIT)" -D"SINGLE_FETCH" -D"BBS" -D"MAX_ORDER=10" -D"MMU_ON" -D"Cache_OFF" -D"IMG_HORIZONTAL_SIZE = $(IMG_HORIZONTAL_SIZE)" -D"IMG_VERTICAL_SIZE = $(IMG_VERTICAL_SIZE)"  -D"BYTE_PER_PIXEL = 4" -o $(MY_RUN) ./Top.cpp ./Memory.cpp ./CAxPkt.cpp ./CRPkt.cpp ./CWPkt.cpp ./CBPkt.cpp ./UD_Bus.cpp ./CFIFO.cpp ./CTRx.cpp ./CQ.cpp ./CBank.cpp ./CMem.cpp ./CAddrGen.cpp ./CMST.cpp ./CTracker.cpp ./CROB.cpp ./CMIU.cpp ./CMMU.cpp ./CCache.cpp ./CBUS.cpp ./CArb.cpp ./CScheduler.cpp ./CSLV.cpp ./$(MAINFILE) ./Buddy/BuddyTop.cpp ./Buddy/CQueue.cpp ./Buddy/CFreeList.cpp ./Buddy/CBlockList.cpp ./Buddy/CBlockArray.cpp ./Buddy/CPageArray.cpp ./Buddy/CBuddy.cpp
 
 # compile BSS NAPOT
 BBS_NAPOT:
