@@ -81,6 +81,8 @@ CBank::CBank(string cName) {
 	this->nCnt_RL  = -1;  				// RD2DATA
 	this->nCnt_WL  = -1;  				// WR2DATA
 	this->nCnt_CCD = -1;  				// RD2RD. WR2WR.
+	this->nCnt_RFCpb = -1;				// PER BANK REFRESH command period (same bank)
+	this->nCnt_REFIab = -1;				// PER BANK REFRESH command period (different bank)
 	this->ongoing_read  = -1;   		// number of ongoing read commands
 	this->ongoing_write = -1;   		// number of ongoing write commands
 
@@ -88,6 +90,7 @@ CBank::CBank(string cName) {
 	this->IsBankPrepared_r = ERESULT_TYPE_NO; 	// Bank prepared (activated, not yet RD/WR) 
 
 	this->nCnt_Data = -1;
+	this->firstRefresh = false;
 };
 
 
@@ -115,6 +118,8 @@ EResultType CBank::Reset() {
 	this->nCnt_RL  = 0;   				// RD2DATA
 	this->nCnt_WL  = 0;   				// WR2DATA
 	this->nCnt_CCD = 0;   				// RD2RD, WR2WR
+	this->nCnt_RFCpb = 0;				// PER BANK REFRESH command period (same bank)
+	this->nCnt_REFIab = 0;				// PER BANK REFRESH command period (different bank)
 	this->ongoing_read  = 0;   			// number of ongoing read commands
 	this->ongoing_write = 0;   			// number of ongoing write commands
 
@@ -122,6 +127,7 @@ EResultType CBank::Reset() {
 	this->IsBankPrepared_r = ERESULT_TYPE_NO;
 
 	this->nCnt_Data = 0;
+	this->firstRefresh = false;
 
 	return (ERESULT_TYPE_SUCCESS);
 };
@@ -382,7 +388,30 @@ EResultType CBank::IsPRE_ready() {
 EResultType CBank::IsACT_ready() {
 
 	// Check state	
-	if (this->eMemState == EMEM_STATE_TYPE_IDLE and nCnt_ACT_cmd <= 4) { 
+	if (this->eMemState == EMEM_STATE_TYPE_IDLE and 
+		this->nCnt_ACT_cmd <= 4                 and 
+		this->nCnt_RFCpb   == 0) 
+	{ // No refresh and no more than 4 ACT in tFAW
+
+		#ifdef DEBUG
+		assert (this->GetActivatedRow() == -1);
+		#endif
+
+		return (ERESULT_TYPE_YES);
+	};
+
+	return (ERESULT_TYPE_NO);	
+};
+
+//--------------------------------------
+// This bank can get REFpb
+//--------------------------------------
+EResultType CBank::IsREF_ready() {
+
+	// Check state	
+	if (this->eMemState  == EMEM_STATE_TYPE_IDLE and 
+		this->nCnt_RFCpb == 0) 
+	{ // No refresh and no more than 4 ACT in tFAW
 
 		#ifdef DEBUG
 		assert (this->GetActivatedRow() == -1);
@@ -400,13 +429,37 @@ EResultType CBank::IsACT_ready() {
 EResultType CBank::forced_PRE() {
 
 	// Check state	
-	if (this->nCnt_RAS >= static_cast<int>(std::ceil(tRAS_max*0.8))) {  // The nCnt_RAS > 0 only if it is activated
+	if (this->nCnt_RAS >= static_cast<int>(std::ceil(tRAS_max*0.95))) {  // The nCnt_RAS > 0 only if it is activated
 
 		#ifdef DEBUG
 		assert (this->GetActivatedRow() != -1);
 		#endif
 		return (ERESULT_TYPE_YES);
+
 	};
+
+	return (ERESULT_TYPE_NO);	
+};
+
+//--------------------------------------
+// Force the MC issuing a PRE command
+//--------------------------------------	
+EResultType CBank::forced_REFI() {
+
+	// Check state
+	if (this->firstRefresh == false) {
+
+		if (this->nCnt_REFIab >= tREFIpb) {  // The nCnt_REFIab > 0 only if it is activated
+
+			return (ERESULT_TYPE_YES);
+		};
+
+	} else {
+		if (this->nCnt_REFIab >= static_cast<int>(std::ceil(tREFI*0.95))) {  // The nCnt_REFIab > 0 only if it is activated
+
+			return (ERESULT_TYPE_YES);
+		};
+	}
 
 	return (ERESULT_TYPE_NO);	
 };
@@ -434,6 +487,7 @@ EResultType CBank::UpdateState() {
 	this->CheckCmdReady();
 	assert (this->nCnt_RAS <= tRAS_max); // Always Check Condition - ACT2PRE
 	assert (this->nCnt_ACT_cmd <= 4); // Always Check Condition - tFAW
+	assert (this->nCnt_REFIab <= tREFI);
 	#endif
 
 	//------------------------------------
@@ -442,7 +496,7 @@ EResultType CBank::UpdateState() {
 	if (this->eMemState == EMEM_STATE_TYPE_IDLE) {
 
 		#ifdef DEBUG
-		assert (this->eMemCmd == EMEM_CMD_TYPE_ACT or this->eMemCmd == EMEM_CMD_TYPE_NOP); // Only allow for receiving the ACT or NOP
+		assert (this->eMemCmd == EMEM_CMD_TYPE_ACT or this->eMemCmd == EMEM_CMD_TYPE_NOP or this->eMemCmd == EMEM_CMD_TYPE_REFpb); // Only allow for receiving the ACT or NOP
 		assert (this->nActivatedRow == -1);				// No row is activated
 		assert (this->nCnt_RCD  == 0);					// (Start increase) ACT2RD. ACT2WR: No-Operation
 		assert (this->nCnt_RAS  == 0);					// (Start increase) ACT2PRE: No-Operation
@@ -464,6 +518,11 @@ EResultType CBank::UpdateState() {
 		} else if (this->eMemCmd == EMEM_CMD_TYPE_NOP) { 
 
 			this->eMemState = EMEM_STATE_TYPE_IDLE;
+		} else if (this->eMemCmd == EMEM_CMD_TYPE_REFpb) { 
+
+			this->firstRefresh = true;
+			this->eMemState = EMEM_STATE_TYPE_REFRESHING;
+
 		} 
 		else {
 			assert (0);
@@ -607,7 +666,6 @@ EResultType CBank::UpdateState() {
 			assert (0);
 		};
 	} 
-
 	else if (this->eMemState == EMEM_STATE_TYPE_PRECHARGING) {
 
 		#ifdef DEBUG
@@ -638,7 +696,39 @@ EResultType CBank::UpdateState() {
 		else {
 			assert (0);
 		};
+	} else if (this->eMemState == EMEM_STATE_TYPE_REFRESHING) {
+
+		#ifdef DEBUG
+		assert (this->eMemCmd == EMEM_CMD_TYPE_NOP);
+		assert (this->nActivatedRow == -1);				// No row is activated
+		assert (this->nCnt_RCD  == 0);					// (Start increase) ACT2RD. ACT2WR: No-Operation
+		assert (this->nCnt_RAS  == 0);					// (Start increase) ACT2PRE: No-Operation
+		assert (this->nCnt_RL   == 0);  				// RD2DATA: No-Operation
+		assert (this->nCnt_WL   == 0);  				// WR2DATA: No-Operation
+		assert (this->nCnt_CCD  == 0);  				// RD2RD. WR2WR: No-Operation
+		assert (this->nCnt_RTP  == 0);  				// RD2PRE: No-Operation
+		assert (this->nCnt_WR   == 0);  				// WR2PRE: No-Operation
+		assert (this->nCnt_RP   == tRP);      			// (Reset) PRE2ACT. Precharging: No-Operation
+		assert (this->nCnt_RC   == 0);   		     	// (Reset) ACT2ACT.
+		#endif
+		
+		if (this->nCnt_RFCpb < tRFCpb) {
+
+			this->eMemState = EMEM_STATE_TYPE_REFRESHING;
+
+		} else if (this->nCnt_RFCpb == tRFCpb) { // This cycle last cycle precharge
+
+			this->eMemState     = EMEM_STATE_TYPE_IDLE;
+
+		} 
+		else {
+			assert (0);
+		};
+
 	} 
+	else {
+		assert (0);
+	}
 
 
 	//--------------------
@@ -964,6 +1054,38 @@ EResultType CBank::UpdateState() {
 		this->nCnt_CCD ++;					// Increase
 	};
 
+	//--------------------------------------------------
+	// RFCpb (REFpb2REFpb or REFpb2ACT)
+	//--------------------------------------------------
+	//	Initially, 0
+	//	Min 0, Max tRFCpb
+	//	At REFpb, start increase
+	//	At tRFCpb-1, reset 0
+	//--------------------------------------------------
+	if (this->eMemCmd == EMEM_CMD_TYPE_REFpb) {
+		this->nCnt_RFCpb = 1;					/// Start increase	
+	} else if (this->nCnt_RFCpb == tRFCpb) {
+		this->nCnt_RFCpb = 0;					/// Reset 
+	}
+	else if (this->nCnt_RFCpb >= 1) {
+		this->nCnt_RFCpb ++;					/// Increase
+	};
+
+	//--------------------------------------------------
+	// tREFIpb - Average periodic refresh interval for REFRESH command for each bank
+	//--------------------------------------------------
+	//	Initially, 0
+	//	Min 0, Max tREFIpb
+	//	Start increase at any time
+	//	At tREFIpb - 1, reset 0
+	//--------------------------------------------------
+	if (this->eMemCmd == EMEM_CMD_TYPE_REFpb) {
+		this->nCnt_REFIab = 0;					/// Reset 
+	}
+	else {
+		this->nCnt_REFIab ++;					/// Increase
+	};
+
 	return (ERESULT_TYPE_SUCCESS);
 };
 
@@ -995,6 +1117,13 @@ EResultType CBank::CheckCmdReady() {
 		assert (this->IsACT_ready() == ERESULT_TYPE_NO);
 	} 
 	else if (this->eMemState == EMEM_STATE_TYPE_PRECHARGING) {
+
+		assert (this->IsACT_ready() == ERESULT_TYPE_NO);
+		assert (this->IsPRE_ready() == ERESULT_TYPE_NO);
+		assert (this->IsRD_ready()  == ERESULT_TYPE_NO);
+		assert (this->IsWR_ready()  == ERESULT_TYPE_NO);
+	}
+	else if (this->eMemState == EMEM_STATE_TYPE_REFRESHING) {
 
 		assert (this->IsACT_ready() == ERESULT_TYPE_NO);
 		assert (this->IsPRE_ready() == ERESULT_TYPE_NO);

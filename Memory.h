@@ -112,14 +112,14 @@
   #define tWDQS2DQ_I_min	static_cast<int>(std::ceil(0.9/tCK))		// WDQS to write data offset
 
   #define tRTW				static_cast<int>(std::ceil(((tRL + HBM_BURST_LENGTH/4 - tWL + 0.5) + tWDQS2DQ_O_max - tWDQS2DQ_I_min)))	// READ to WRITE command delay = (RL + BL/4 - WL + 0.5) × tCK + tWDQS2DQ_O(max) - tWDQS2DQ_I(min)
-                                                                                                                                    // tRTW is not a DRAM device limit but determined by the system bus turnaround time.
+                                                                                                                              // tRTW is not a DRAM device limit but determined by the system bus turnaround time.
     
-  #define tFAW				20		// Not implemented. We do not need this, because we have 4 banks.
-  #define tREFI				static_cast<int>(std::floor(3900/tCK))	// (Max Value) Average refresh interval. Not implemented.
-  #define tREFIpb			static_cast<int>(std::floor(tREFI/48))  // (Max Value) Average periodic refresh interval for PER BANK REFRESH command. Not implemented.
-  #define tRFCab			static_cast<int>(std::ceil(350/tCK))	  // (Min Value) Not implemented
-  #define tRFCpb			static_cast<int>(std::ceil(200/tCK))	  // (Min Value) Not implemented
-  #define tRREFD			std::max(3, static_cast<int>(std::ceil(8/tCK)))		 // Not implemented
+  #define tFAW				20		                                            // No more than 4 banks may be activated in a rolling tFAW window.
+  #define tREFI				static_cast<int>(std::floor(3900/tCK))	          // (Max Value) Average refresh interval. Not implemented.
+  #define tREFIpb			static_cast<int>(std::floor(tREFI/BANK_NUM))	    // (Max Value) Average refresh interval. Not implemented.
+  #define tRFCab			static_cast<int>(std::ceil(350/tCK))	            // (Min Value) Not implemented
+  #define tRFCpb			static_cast<int>(std::ceil(200/tCK))	            // (Min Value) Not implemented
+  #define tRREFD			std::max(3, static_cast<int>(std::ceil(8/tCK)))		// PER BANK REFRESH command period (different bank)
 
 //-------------------------------------------------
 
@@ -145,6 +145,7 @@ typedef enum{
 //-------------------------------------------------
 typedef enum{
 	EMEM_CMD_TYPE_ACT,				// Activate
+  EMEM_CMD_TYPE_REFpb,
 	EMEM_CMD_TYPE_PRE,				// Precharge
 	EMEM_CMD_TYPE_RD,				  // Read
 	EMEM_CMD_TYPE_WR,				  // Write
@@ -176,7 +177,9 @@ typedef struct tagSMemStatePkt{
 	EResultType	IsWR_ready[BANK_NUM];
 	EResultType	IsPRE_ready[BANK_NUM];
 	EResultType	IsACT_ready[BANK_NUM];
+  EResultType	IsREF_ready[BANK_NUM];
   EResultType	forced_PRE[BANK_NUM];
+  EResultType	forced_REFI[BANK_NUM];
 	
 	EResultType	IsFirstData_Read_ready[BANK_NUM];	// Can put first data in bank
   EResultType	IsFirstData_Write_ready[BANK_NUM];	// Can put first data in bank

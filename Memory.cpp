@@ -19,6 +19,9 @@ string Convert_eMemCmd2string(EMemCmdType eType) {
 	        case EMEM_CMD_TYPE_ACT:
 			return("ACT");
 			break;
+	        case EMEM_CMD_TYPE_REFpb:
+			return("REFpb");
+			break;
 	        case EMEM_CMD_TYPE_PRE:
 			return("PRE");
 			break;
@@ -31,9 +34,9 @@ string Convert_eMemCmd2string(EMemCmdType eType) {
 	        case EMEM_CMD_TYPE_NOP:
 			return("NOP");
 			break;
-	        case EUD_TYPE_UNDEFINED:
+	        case EMEM_CMD_TYPE_UNDEFINED:
 			assert(0);
-			return("EUD_TYPE_UNDEFINED");
+			return("EMEM_CMD_TYPE_UNDEFINED");
 	        default:
 			break;
 	};

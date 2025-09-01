@@ -298,15 +298,6 @@ EResultType CQ::SetMemStateCmdPkt(SPMemStatePkt spThis) {
 		spTarget = spScan;
 		spScan   = spScan->spNext;
 		// spTarget->spMemCmdPkt = this->GetMemCmdPkt(spTarget);	// FIXME Check spMemCmdPkt new. Be careful memory leak
-		
-		for(int i = 0; i < BANK_NUM; i++) {
-			if (this->spMemStatePkt->forced_PRE[i] == ERESULT_TYPE_YES) {
-				spTarget->spMemCmdPkt->eMemCmd = EMEM_CMD_TYPE_PRE;
-				spTarget->spMemCmdPkt->nBank = i;
-				spTarget->spMemCmdPkt->nRow = 0; // PRE has no row info
-				return (ERESULT_TYPE_SUCCESS);
-			}
-		}
 
 		// Get target bank row
 		if (this->eUDType == EUD_TYPE_AR) {
@@ -321,9 +312,7 @@ EResultType CQ::SetMemStateCmdPkt(SPMemStatePkt spThis) {
 			assert (0);	
 		};
 
-		spTarget->spMemCmdPkt->eMemCmd = this->GetMemCmd(spTarget);	// FIXME Check spMemCmdPkt new. Be careful memory leak.
-
-				
+		spTarget->spMemCmdPkt->eMemCmd = this->GetMemCmd(spTarget);	// FIXME Check spMemCmdPkt new. Be careful memory leak.		
 
 	};
 
@@ -403,7 +392,7 @@ EMemCmdType CQ::GetMemCmd(SPLinkedMUD spThis) {
 		eMemCmd = EMEM_CMD_TYPE_ACT;	
 		return (eMemCmd);
 	};
-	
+
 	// Check NOP issued
 	// assert (spMemCmdPkt->eMemCmd == EMEM_CMD_TYPE_NOP);
 	// assert (spMemCmdPkt->nBank != -1);
@@ -411,96 +400,6 @@ EMemCmdType CQ::GetMemCmd(SPLinkedMUD spThis) {
 	
 	return (eMemCmd);
 };
-
-
-
-// // FIXME return type can be EMEM_CMD_TYPE. We should not new here
-// // Get mem cmd pkt
-// SPMemCmdPkt CQ::GetMemCmdPkt(SPLinkedMUD spThis) {
-//	
-//	// Generate and initialize 
-//	SPMemCmdPkt spMemCmdPkt = new SMemCmdPkt; // FIXME Must delete somewhere
-//	spMemCmdPkt->eMemCmd = EMEM_CMD_TYPE_NOP;
-//	spMemCmdPkt->nBank   = -1;
-//	spMemCmdPkt->nRow    = -1;
-//	
-//	// Check delay to get cmd 
-//	// Use this latency as register 
-//	if (spThis->nCycle_wait < Q_MIN_WAITING_CYCLE) {
-//		// Set cmd
-//		spMemCmdPkt->eMemCmd = EMEM_CMD_TYPE_NOP;	
-//		return (spMemCmdPkt);
-//	};	
-//	
-//	
-//	// Get target bank row
-//	int nBank = -1;
-//	int nRow  = -1;
-//	if (this->eUDType == EUD_TYPE_AR) {
-//		nBank = spThis->upData->cpAR->GetBankNum_MMap();
-//		nRow  = spThis->upData->cpAR->GetRowNum_MMap();
-//	} 
-//	else if (this->eUDType == EUD_TYPE_AW) {
-//		nBank = spThis->upData->cpAW->GetBankNum_MMap();
-//		nRow  = spThis->upData->cpAW->GetRowNum_MMap();
-//	} 
-//	else {
-//		assert (0);	
-//	};
-//	spMemCmdPkt->nBank = nBank;
-//	spMemCmdPkt->nRow  = nRow;
-//	
-//	// Check cmd ready
-//	EResultType eIsACT_ready = this->spMemStatePkt->IsACT_ready[nBank];
-//	EResultType eIsPRE_ready = this->spMemStatePkt->IsPRE_ready[nBank];
-//	EResultType eIsRD_ready  = this->spMemStatePkt->IsRD_ready[nBank];
-//	EResultType eIsWR_ready  = this->spMemStatePkt->IsWR_ready[nBank];
-//	
-//	// Check RD issueable
-//	if (eIsRD_ready == ERESULT_TYPE_YES and this->eUDType == EUD_TYPE_AR) {
-//		// Check bank hit
-//		if (nRow == this->spMemStatePkt->nActivatedRow[nBank]) {
-//			// Set cmd
-//			spMemCmdPkt->eMemCmd = EMEM_CMD_TYPE_RD;
-//			return (spMemCmdPkt);
-//		};
-//	};
-//	
-//	// Check WR issueable
-//	if (eIsWR_ready == ERESULT_TYPE_YES and this->eUDType == EUD_TYPE_AW) {
-//		// Check bank hit
-//		if (nRow == this->spMemStatePkt->nActivatedRow[nBank]) {
-//			// Set cmd
-//			spMemCmdPkt->eMemCmd = EMEM_CMD_TYPE_WR;
-//			return (spMemCmdPkt);
-//		};
-//	};
-//	
-//	// Check PRE issueable
-//	if (eIsPRE_ready == ERESULT_TYPE_YES) {
-//		// Check bank miss
-//		if (nRow != this->spMemStatePkt->nActivatedRow[nBank]) {
-//			// Set cmd
-//			spMemCmdPkt->eMemCmd = EMEM_CMD_TYPE_PRE;	
-//			return (spMemCmdPkt);
-//		};
-//	};
-//	
-//	// Check ACT issueable
-//	if (eIsACT_ready == ERESULT_TYPE_YES) {
-//		// Set cmd
-//		spMemCmdPkt->eMemCmd = EMEM_CMD_TYPE_ACT;	
-//		return (spMemCmdPkt);
-//	};
-//	
-//	// Check NOP issued
-//	assert (spMemCmdPkt->eMemCmd == EMEM_CMD_TYPE_NOP);
-//	assert (spMemCmdPkt->nBank != -1);
-//	assert (spMemCmdPkt->nRow  != -1);
-//	
-//	return (spMemCmdPkt);
-//};
-
 
 // Get mem state pkt
 SPMemStatePkt CQ::GetMemStatePkt() {

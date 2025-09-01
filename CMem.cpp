@@ -154,6 +154,24 @@ EResultType CMem::SetMemCmdPkt(EMemCmdType eCmd, int nBank, int nRow) {
 	this->spMemCmdPkt->nBank   = nBank;
 	this->spMemCmdPkt->nRow    = nRow;
 
+	if (this->spMemCmdPkt->eMemCmd == EMEM_CMD_TYPE_REFpb) {
+
+		#ifdef DEBUG
+		assert(Refresh_Counter.size() <= BANK_NUM);
+		#endif
+
+		for (int i=0; i<static_cast<int>(Refresh_Counter.size()); i++) {
+			assert(Refresh_Counter[i] != this->spMemCmdPkt->nBank); // There should not be more than 1 REF command in tREFI
+		};
+
+		Refresh_Counter.push_back(this->spMemCmdPkt->nBank);
+
+		if (Refresh_Counter.size() == BANK_NUM) {
+			Refresh_Counter.erase(Refresh_Counter.begin());
+		}
+
+	}
+
 	// Set cmd
 	if (nBank == -1) {
 
@@ -255,9 +273,25 @@ EResultType CMem::IsWR_global_ready(int bank) {
 // Check ACT cmd ready
 EResultType CMem::IsACT_global_ready(int bank) {
 	for (int nbank=0; nbank<BANK_NUM; nbank++) {
+		
 		int check_bankgroup = std::floor(nbank/BanksPerBGroup);
-		if (this->nCnt_RRD[check_bankgroup] < Get_tRRD(bank, nbank))
+
+		if (this->nCnt_RRD[check_bankgroup] < Get_tRRD(bank, nbank) or
+			this->nCnt_RREFD                < tRREFD)
+
 			return (ERESULT_TYPE_NO);
+
+	};
+	return (ERESULT_TYPE_YES);
+};
+
+// Check ACT cmd ready
+EResultType CMem::IsREF_global_ready(int bank) {
+
+	if (this->nCnt_RREFD < tRREFD) {
+		
+			return (ERESULT_TYPE_NO);
+
 	};
 	return (ERESULT_TYPE_YES);
 };
@@ -269,16 +303,18 @@ SPMemStatePkt CMem::GetMemStatePkt() {
 	// Bank status pkt
 	for (int i=0; i<BANK_NUM; i++) {
 		// Obtain local info
-		this->spMemStatePkt->eMemState[i]          = this->cpBank[i]->GetMemState();
-		this->spMemStatePkt->IsRD_ready[i]         = this->cpBank[i]->IsRD_ready();
-		this->spMemStatePkt->IsWR_ready[i]         = this->cpBank[i]->IsWR_ready();
-		this->spMemStatePkt->IsPRE_ready[i]        = this->cpBank[i]->IsPRE_ready();
-		this->spMemStatePkt->IsACT_ready[i]        = this->cpBank[i]->IsACT_ready();
-		this->spMemStatePkt->forced_PRE[i]         = this->cpBank[i]->forced_PRE();
+		this->spMemStatePkt->eMemState[i]          		= this->cpBank[i]->GetMemState();
+		this->spMemStatePkt->IsRD_ready[i]         		= this->cpBank[i]->IsRD_ready();
+		this->spMemStatePkt->IsWR_ready[i]         		= this->cpBank[i]->IsWR_ready();
+		this->spMemStatePkt->IsPRE_ready[i]        		= this->cpBank[i]->IsPRE_ready();
+		this->spMemStatePkt->IsACT_ready[i]        		= this->cpBank[i]->IsACT_ready();
+		this->spMemStatePkt->IsREF_ready[i]      		= this->cpBank[i]->IsREF_ready();
+		this->spMemStatePkt->forced_PRE[i]         		= this->cpBank[i]->forced_PRE();
+		this->spMemStatePkt->forced_REFI[i]         	= this->cpBank[i]->forced_REFI();
 		this->spMemStatePkt->IsFirstData_Read_ready[i]  = this->cpBank[i]->IsFirstData_Read_ready();
 		this->spMemStatePkt->IsFirstData_Write_ready[i] = this->cpBank[i]->IsFirstData_Write_ready();
-		this->spMemStatePkt->IsBankPrepared[i]     = this->cpBank[i]->IsBankPrepared();
-		this->spMemStatePkt->nActivatedRow[i]      = this->cpBank[i]->GetActivatedRow();
+		this->spMemStatePkt->IsBankPrepared[i]     		= this->cpBank[i]->IsBankPrepared();
+		this->spMemStatePkt->nActivatedRow[i]      		= this->cpBank[i]->GetActivatedRow();
 		
 		// Obtain global info and override 
 		if (this->IsRD_global_ready(i) == ERESULT_TYPE_NO) {
@@ -289,6 +325,9 @@ SPMemStatePkt CMem::GetMemStatePkt() {
 		};
 		if (this->IsACT_global_ready(i) == ERESULT_TYPE_NO) {
 			this->spMemStatePkt->IsACT_ready[i] = ERESULT_TYPE_NO;
+		};
+		if (this->IsREF_global_ready(i) == ERESULT_TYPE_NO) {
+			this->spMemStatePkt->IsREF_ready[i] = ERESULT_TYPE_NO;
 		};
 
 		// Check data channel busy 
@@ -357,6 +396,14 @@ EResultType CMem::UpdateState() {
 	}
 	else {
 		for (int i=0; i<BANK_NUM/BanksPerBGroup; i++) this->nCnt_RRD[i] ++; // obliviously increase
+	};
+
+	// Update global counter RRD
+	if (this->spMemCmdPkt->eMemCmd == EMEM_CMD_TYPE_REFpb) {
+		this->nCnt_RREFD = 1;  // Global. ACT2ACT diff bank
+	}
+	else {
+		this->nCnt_RREFD ++; // obliviously increase
 	};
 
 	return (ERESULT_TYPE_SUCCESS);

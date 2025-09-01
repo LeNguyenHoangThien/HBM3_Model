@@ -48,7 +48,9 @@ public:
 	EResultType	IsWR_ready(int nCnt_CCD_max=tCCD);
 	EResultType	IsPRE_ready();
 	EResultType	IsACT_ready();
+	EResultType IsREF_ready();
 	EResultType	forced_PRE();
+	EResultType forced_REFI();
 	EResultType	IsFirstData_Read_ready();	// This bank can put first data.
 	EResultType	IsFirstData_Write_ready();	// This bank can put first data.
 	EResultType	IsBankPrepared();	// This bank is activated. 
@@ -83,6 +85,8 @@ private:
 	int				nCnt_RCD;			// ACT2RD. ACT2WR. Per-bank. Auto (Activating).
 	int				nCnt_FAW;           // No more than 4 banks may be activated in a rolling tFAW window.
 	int 			nCnt_ACT_cmd;       // Number of ongoing activations in tFAW window
+	int             nCnt_RFCpb;  	    // Refreshing. Per-bank. Auto (Refreshing)
+	int             nCnt_REFIab;		// Average periodic refresh interval for REFRESH command for each bank.
 
 	int				nCnt_RTP;			// RD2PRE.         Per-bank (wait PRE)
 	int				nCnt_WR; 			// WR2PRE.         Per-bank (wait PRE)
@@ -95,6 +99,7 @@ private:
 	int             ongoing_write;   	// number of ongoing read commands
 
 	int				nCnt_CCD;			// RD2RD. WR2WR.   Per-bank (wait RD/WR) Also global
+	bool            firstRefresh; 
 
 	EResultType		IsCmd_overlap_r;	// Doing service for two RD or WR cmds. Register
 	EResultType		IsBankPrepared_r;	// Bank prepared (PRE, ACT). Not yet RD/WR 

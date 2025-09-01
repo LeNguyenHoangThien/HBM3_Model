@@ -720,20 +720,61 @@ EResultType CSLV::Do_Ax_fwd_MC_Backend_Request(int64_t nCycle) {
 	SPMemCmdPkt spMemCmdPkt = new SMemCmdPkt;
 	SPMemStatePkt spMemStatePkt = new tagSMemStatePkt;
 
-	if (this->cpQ_AR->IsEmpty() != ERESULT_TYPE_YES) {
-		spMemStatePkt = this->cpMem->GetMemStatePkt();
-	}
-	else if (this->cpQ_AW->IsEmpty() != ERESULT_TYPE_YES) {
-		spMemStatePkt = this->cpMem->GetMemStatePkt();
-	}
-	else {
-		//spMemStatePkt_AW = this->cpMem->GetMemStatePkt(); // Unused because empty, but needed for GetScheduledMUD
-	};
-
-
-	// Set cmd for all entries Q 
+	spMemStatePkt = this->cpMem->GetMemStatePkt();
 	this->cpQ_AR->SetMemStateCmdPkt(spMemStatePkt);
 	this->cpQ_AW->SetMemStateCmdPkt(spMemStatePkt);
+
+	for (int i = 0; i < BANK_NUM; i++) {
+		if (spMemStatePkt->forced_PRE[i] == ERESULT_TYPE_YES) {
+			
+			spMemCmdPkt->eMemCmd = EMEM_CMD_TYPE_PRE;
+			spMemCmdPkt->nBank = i;
+			spMemCmdPkt->nRow  = 0; // PRE and REFpb: Row is don't care
+			this->SetMemCmdPkt(spMemCmdPkt);
+			this->cpMem->SetMemCmdPkt(spMemCmdPkt);
+
+			#ifdef DEBUG_SLV
+			string cCmd = Convert_eMemCmd2string(spMemCmdPkt->eMemCmd);
+			printf("[Cycle %3ld: SLV.Do_Ax_fwd_MC_Backend_Request] MC cmd %s (Bank %d, Row 0x%x) sent to bank %d, row 0x%x \n", nCycle, cCmd.c_str(), spMemCmdPkt->nBank, spMemCmdPkt->nRow, spMemCmdPkt->nBank, cpMem->cpBank[spMemCmdPkt->nBank]->GetActivatedRow());
+			#endif
+
+			return (ERESULT_TYPE_SUCCESS);
+
+		} else if (	spMemStatePkt->forced_REFI[i] == ERESULT_TYPE_YES) {
+			if (spMemStatePkt->IsREF_ready[i] == ERESULT_TYPE_YES) {
+
+				spMemCmdPkt->eMemCmd = EMEM_CMD_TYPE_REFpb;
+				spMemCmdPkt->nBank = i;
+				spMemCmdPkt->nRow  = 0; // PRE and REFpb: Row is don't care
+				this->SetMemCmdPkt(spMemCmdPkt);
+				this->cpMem->SetMemCmdPkt(spMemCmdPkt);
+
+				#ifdef DEBUG_SLV
+				string cCmd = Convert_eMemCmd2string(spMemCmdPkt->eMemCmd);
+				printf("[Cycle %3ld: SLV.Do_Ax_fwd_MC_Backend_Request] MC cmd %s (Bank %d, Row 0x%x) sent to bank %d, row 0x%x \n", nCycle, cCmd.c_str(), spMemCmdPkt->nBank, spMemCmdPkt->nRow, spMemCmdPkt->nBank, cpMem->cpBank[spMemCmdPkt->nBank]->GetActivatedRow());
+				#endif
+
+				return (ERESULT_TYPE_SUCCESS);
+
+			}
+			else if (spMemStatePkt->IsPRE_ready[i] == ERESULT_TYPE_YES) {
+
+				spMemCmdPkt->eMemCmd = EMEM_CMD_TYPE_PRE;
+				spMemCmdPkt->nBank = i;
+				spMemCmdPkt->nRow  = 0; // PRE and REFpb: Row is don't care
+				this->SetMemCmdPkt(spMemCmdPkt);
+				this->cpMem->SetMemCmdPkt(spMemCmdPkt);
+
+				#ifdef DEBUG_SLV
+				string cCmd = Convert_eMemCmd2string(spMemCmdPkt->eMemCmd);
+				printf("[Cycle %3ld: SLV.Do_Ax_fwd_MC_Backend_Request] MC cmd %s (Bank %d, Row 0x%x) sent to bank %d, row 0x%x \n", nCycle, cCmd.c_str(), spMemCmdPkt->nBank, spMemCmdPkt->nRow, spMemCmdPkt->nBank, cpMem->cpBank[spMemCmdPkt->nBank]->GetActivatedRow());
+				#endif
+
+				return (ERESULT_TYPE_SUCCESS);
+
+			}
+		}
+	}
 
 	// Schedule
 	#ifdef BANK_HIT_FIRST
