@@ -520,12 +520,12 @@ EResultType CSLV::Do_AR_fwd_MC_Backend_Response(int64_t nCycle) {
 	
 	// Check R sent
 	SPMemStatePkt spMemStatePkt = this->cpMem->GetMemStatePkt();
-	if (spMemStatePkt->IsFirstData_Read_ready[nBank] == ERESULT_TYPE_NO) { // Target bank can put first data
+	if (spMemStatePkt->IsFirstData_ready[nBank] == ERESULT_TYPE_NO) { // Target bank can put first data
 		return (ERESULT_TYPE_FAIL);
 	};
 
 	#ifdef DEBUG_SLV
-	// printf("[Cycle %3ld: SLV.Do_AR_fwd_MC_Backend_Response] R data ready bank %d, row 0x%x.\n", nCycle, nBank, spMemStatePkt->nActivatedRow[nBank]);
+	printf("[Cycle %3ld: SLV.Do_AR_fwd_MC_Backend_Response] R data ready bank %d, row 0x%x.\n", nCycle, nBank, spMemStatePkt->nActivatedRow[nBank]);
 	#endif
 	
 	// Pop AR
@@ -953,7 +953,7 @@ EResultType CSLV::Do_AW_fwd_MC_Backend_Response(int64_t nCycle) {
 
 	// Check B sent
 	SPMemStatePkt spMemStatePkt = this->cpMem->GetMemStatePkt();
-	if (spMemStatePkt->IsFirstData_Write_ready[nBank] == ERESULT_TYPE_NO) {
+	if (spMemStatePkt->IsFirstData_ready[nBank] == ERESULT_TYPE_NO) {
 		return (ERESULT_TYPE_FAIL);
 	};
 

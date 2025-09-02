@@ -64,33 +64,30 @@
 CBank::CBank(string cName) {
 
 	// Initialize
-	this->cName  = cName;
+	this->cName  			= cName;
 
-	this->eMemCmd = EMEM_CMD_TYPE_UNDEFINED;
-	this->nBankCmd = -1;
-	this->nRowCmd  = -1;
+	this->eMemCmd 			= EMEM_CMD_TYPE_UNDEFINED;
+	this->nBankCmd 			= -1;
+	this->nRowCmd  			= -1;
 
-	this->eMemState = EMEM_STATE_TYPE_IDLE;
-	this->nActivatedRow = -1;
+	this->eMemState 		= EMEM_STATE_TYPE_IDLE;
+	this->nActivatedRow 	= -1;
 
-	this->nCnt_RP  = -1;  				// PRE2ACT. Precharging.
-	this->nCnt_RAS = -1;  				// ACT2PRE
-	this->nCnt_RCD = -1;  				// ACT2RD. ACT2WR. Activating.
-	this->nCnt_RTP = -1;  				// RD2PRE
-	this->nCnt_WR  = -1;  				// WR2PRE
-	this->nCnt_RL  = -1;  				// RD2DATA
-	this->nCnt_WL  = -1;  				// WR2DATA
-	this->nCnt_CCD = -1;  				// RD2RD. WR2WR.
-	this->nCnt_RFCpb = -1;				// PER BANK REFRESH command period (same bank)
-	this->nCnt_REFIab = -1;				// PER BANK REFRESH command period (different bank)
-	this->ongoing_read  = -1;   		// number of ongoing read commands
-	this->ongoing_write = -1;   		// number of ongoing write commands
-
-	this->IsCmd_overlap_r  = ERESULT_TYPE_NO; 	// Back-to-back RD/WR
-	this->IsBankPrepared_r = ERESULT_TYPE_NO; 	// Bank prepared (activated, not yet RD/WR) 
-
-	this->nCnt_Data = -1;
-	this->firstRefresh = false;
+	this->nCnt_RP  			= -1;  				// PRE2ACT. Precharging.
+	this->nCnt_RAS 			= -1;  				// ACT2PRE
+	this->nCnt_RCD 			= -1;  				// ACT2RD. ACT2WR. Activating.
+	this->nCnt_RTP 			= -1;  				// RD2PRE
+	this->nCnt_WR  			= -1;  				// WR2PRE
+	this->nCnt_RL  			= -1;  				// RD2DATA
+	this->nCnt_WL  			= -1;  				// WR2DATA
+	this->nCnt_CCD 			= -1;  				// RD2RD. WR2WR.
+	this->nCnt_RFCpb 		= -1;				// PER BANK REFRESH command period (same bank)
+	this->nCnt_REFIab 		= -1;				// PER BANK REFRESH command period (different bank)
+	this->ongoing_read  	= -1;   		// number of ongoing read commands
+	this->ongoing_write 	= -1;   		// number of ongoing write commands
+	this->IsBankPrepared_r 	= ERESULT_TYPE_NO; 	// Bank prepared (activated, not yet RD/WR) 
+	this->nCnt_Data 		= -1;
+	this->firstRefresh 		= false;
 };
 
 
@@ -103,31 +100,26 @@ CBank::~CBank() {
 // Reset
 EResultType CBank::Reset() {
 
-	this->eMemCmd  = EMEM_CMD_TYPE_NOP;
-	this->nBankCmd = -1;
-	this->nRowCmd  = -1;
-
-	this->eMemState     = EMEM_STATE_TYPE_IDLE;
-	this->nActivatedRow = -1;
-
-	this->nCnt_RP  = tRP; 			// PRE2ACT. Initially in cycle 1, bank state idle (or precharge finished)
-	this->nCnt_RAS = 0;   				// ACT2PRE
-	this->nCnt_RCD = 0;   				// ACT2RD, ACT2WR. Activating.
-	this->nCnt_RTP = 0;   				// RD2PRE
-	this->nCnt_WR  = 0;   				// WR2PRE
-	this->nCnt_RL  = 0;   				// RD2DATA
-	this->nCnt_WL  = 0;   				// WR2DATA
-	this->nCnt_CCD = 0;   				// RD2RD, WR2WR
-	this->nCnt_RFCpb = 0;				// PER BANK REFRESH command period (same bank)
-	this->nCnt_REFIab = 0;				// PER BANK REFRESH command period (different bank)
-	this->ongoing_read  = 0;   			// number of ongoing read commands
-	this->ongoing_write = 0;   			// number of ongoing write commands
-
-	this->IsCmd_overlap_r  = ERESULT_TYPE_NO;
-	this->IsBankPrepared_r = ERESULT_TYPE_NO;
-
-	this->nCnt_Data = 0;
-	this->firstRefresh = false;
+	this->eMemCmd  			= EMEM_CMD_TYPE_NOP;
+	this->nBankCmd 			= -1;
+	this->nRowCmd  			= -1;
+	this->eMemState     	= EMEM_STATE_TYPE_IDLE;
+	this->nActivatedRow 	= -1;
+	this->nCnt_RP  			= tRP; 			// PRE2ACT. Initially in cycle 1, bank state idle (or precharge finished)
+	this->nCnt_RAS 			= 0;   				// ACT2PRE
+	this->nCnt_RCD 			= 0;   				// ACT2RD, ACT2WR. Activating.
+	this->nCnt_RTP 			= 0;   				// RD2PRE
+	this->nCnt_WR  			= 0;   				// WR2PRE
+	this->nCnt_RL  			= 0;   				// RD2DATA
+	this->nCnt_WL  			= 0;   				// WR2DATA
+	this->nCnt_CCD 			= 0;   				// RD2RD, WR2WR
+	this->nCnt_RFCpb 		= 0;				// PER BANK REFRESH command period (same bank)
+	this->nCnt_REFIab 		= 0;				// PER BANK REFRESH command period (different bank)
+	this->ongoing_read  	= 0;   			// number of ongoing read commands
+	this->ongoing_write 	= 0;   			// number of ongoing write commands
+	this->IsBankPrepared_r 	= ERESULT_TYPE_NO;
+	this->nCnt_Data 		= 0;
+	this->firstRefresh 		= false;
 
 	return (ERESULT_TYPE_SUCCESS);
 };
@@ -263,7 +255,7 @@ EResultType CBank::IsData_busy() {
 	};
 
 	// Check 1st data
-	if ((this->IsFirstData_Read_ready() || this->IsFirstData_Write_ready()) == ERESULT_TYPE_YES) {  		// First data in this cycle 
+	if (this->IsFirstData_ready() == ERESULT_TYPE_YES) {  		// First data in this cycle 
 		this->nCnt_Data = 2;					// 2nd data in next cycle
 		return (ERESULT_TYPE_YES);
 	};
@@ -279,11 +271,11 @@ EResultType CBank::IsData_busy() {
 //---------------------------------------------
 // Check this bank can put data 
 //---------------------------------------------
-// 	IsCmd_overlap_r		Assert 1 cycle
-//				At RD/WR, set 
-//				Otherwise, reset (See UpdateState)
+// Assert 1 cycle
+//  At RD/WR, set 
+//	Otherwise, reset (See UpdateState)
 //---------------------------------------------
-EResultType CBank::IsFirstData_Read_ready() {
+EResultType CBank::IsFirstData_ready() {
 
 	// Check counter	
 	if (this->nCnt_RL == tRL) {					// RD2DATA
@@ -291,45 +283,14 @@ EResultType CBank::IsFirstData_Read_ready() {
 		return (ERESULT_TYPE_YES);	
 	};
 
-	// Check back-to-back RD/WR
-	if (this->nCnt_RL == 1) {			// RD2DATA. WR2DATA
-		if (this->IsCmd_overlap_r == ERESULT_TYPE_YES) {
-
-			#ifdef DEBUG
-			assert (this->eMemState == EMEM_STATE_TYPE_ACTIVE);
-			#endif
-			//printf("[Warning] CBank::IsFirstData_ready() - Back-to-back RD/WR without PRE in bank %s\n", this->cName.c_str());
-			return (ERESULT_TYPE_YES);	
-		};
-	};
-
-	return (ERESULT_TYPE_NO);	
-};
-
-EResultType CBank::IsFirstData_Write_ready() {
-
 	// Check counter	
 	if (this->nCnt_WL == tWL) {					// WR2DATA
 		//printf("The First WRITE Data is READY at %s nCnt_WL %d, ongoing = %d\n", this->cName.c_str(), this->nCnt_WL, this->ongoing_write);
 		return (ERESULT_TYPE_YES);	
 	};
 
-	// Check back-to-back RD/WR
-	if (this->nCnt_WL == 1) {			// RD2DATA. WR2DATA
-		if (this->IsCmd_overlap_r == ERESULT_TYPE_YES) {
-
-			#ifdef DEBUG
-			assert (this->eMemState == EMEM_STATE_TYPE_ACTIVE);
-			#endif
-			//printf("[Warning] CBank::IsFirstData_ready() - Back-to-back RD/WR without PRE in bank %s\n", this->cName.c_str());
-			return (ERESULT_TYPE_YES);	
-		};
-	};
-
 	return (ERESULT_TYPE_NO);	
 };
-
-
 
 //---------------------------------------------
 // Check this bank is prepared
@@ -468,7 +429,7 @@ EResultType CBank::forced_REFI() {
 //--------------------------------------
 // Update state
 //--------------------------------------
-// 	Update in the order of State, IsCmd_overlap_r, IsBankPrepared_r, Counter
+// 	Update in the order of State, IsBankPrepared_r, Counter
 //  Modeling DRAM operation as a FSM with states and counters
 //--------------------------------------
 //	nCnt_RP   PRE2ACT           auto state Precharging
@@ -729,31 +690,6 @@ EResultType CBank::UpdateState() {
 	else {
 		assert (0);
 	}
-
-
-	//--------------------
-	// IsCmd_overlap_r
-	//--------------------
-	// 	Register. Need this to get IsFirstData_ready
-	// Ready to get data from DRAM
-	//--------------------
-	//	Back-to-back RD/WR
-	//	Assert 1 cycle
-	//	Initially, 0
-	//	At RD/WR, set 
-	//	Otherwise, reset (See UpdateState)
-	//--------------------
-	// Check back-to-back
-	if (this->eMemCmd == EMEM_CMD_TYPE_RD and this->nCnt_RL == tRL-1) {
-		this->IsCmd_overlap_r = ERESULT_TYPE_YES;
-	}
-	else if (this->eMemCmd == EMEM_CMD_TYPE_WR and this->nCnt_WL == tWL-1) {
-		this->IsCmd_overlap_r = ERESULT_TYPE_YES;
-	}
-	else {
-		this->IsCmd_overlap_r = ERESULT_TYPE_NO;
-	};
-
 
 	//--------------------
 	// IsBankPrepared_r

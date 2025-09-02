@@ -51,8 +51,7 @@ public:
 	EResultType IsREF_ready();
 	EResultType	forced_PRE();
 	EResultType forced_REFI();
-	EResultType	IsFirstData_Read_ready();	// This bank can put first data.
-	EResultType	IsFirstData_Write_ready();	// This bank can put first data.
+	EResultType	IsFirstData_ready();	// This bank can put first data.
 	EResultType	IsBankPrepared();	// This bank is activated. 
 	
 	// Control
@@ -101,7 +100,6 @@ private:
 	int				nCnt_CCD;			// RD2RD. WR2WR.   Per-bank (wait RD/WR) Also global
 	bool            firstRefresh; 
 
-	EResultType		IsCmd_overlap_r;	// Doing service for two RD or WR cmds. Register
 	EResultType		IsBankPrepared_r;	// Bank prepared (PRE, ACT). Not yet RD/WR 
 
 	// Stat

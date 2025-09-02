@@ -181,10 +181,9 @@ typedef struct tagSMemStatePkt{
   EResultType	forced_PRE[BANK_NUM];
   EResultType	forced_REFI[BANK_NUM];
 	
-	EResultType	IsFirstData_Read_ready[BANK_NUM];	// Can put first data in bank
-  EResultType	IsFirstData_Write_ready[BANK_NUM];	// Can put first data in bank
+	EResultType	IsFirstData_ready[BANK_NUM];	// Can put first data in bank
 	EResultType	IsBankPrepared[BANK_NUM];	// Bank activated (not yet RD/WR) 
-	int		nActivatedRow[BANK_NUM];
+	int		      nActivatedRow[BANK_NUM];
 	EResultType	IsData_busy;			// Stat
 }SMemStatePkt;
 

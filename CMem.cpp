@@ -82,8 +82,7 @@ EResultType CMem::Reset() {
 		this->spMemStatePkt->eMemState[i]         = EMEM_STATE_TYPE_IDLE;
 		this->spMemStatePkt->IsRD_ready[i]        = ERESULT_TYPE_NO;
 		this->spMemStatePkt->IsWR_ready[i]        = ERESULT_TYPE_NO;
-		this->spMemStatePkt->IsFirstData_Read_ready[i] = ERESULT_TYPE_NO;
-		this->spMemStatePkt->IsFirstData_Write_ready[i] = ERESULT_TYPE_NO;
+		this->spMemStatePkt->IsFirstData_ready[i] = ERESULT_TYPE_NO;
 		this->spMemStatePkt->IsBankPrepared[i] 	  = ERESULT_TYPE_NO;
 		this->spMemStatePkt->IsACT_ready[i]       = ERESULT_TYPE_NO;
 		this->spMemStatePkt->IsPRE_ready[i]       = ERESULT_TYPE_NO;
@@ -303,18 +302,17 @@ SPMemStatePkt CMem::GetMemStatePkt() {
 	// Bank status pkt
 	for (int i=0; i<BANK_NUM; i++) {
 		// Obtain local info
-		this->spMemStatePkt->eMemState[i]          		= this->cpBank[i]->GetMemState();
-		this->spMemStatePkt->IsRD_ready[i]         		= this->cpBank[i]->IsRD_ready();
-		this->spMemStatePkt->IsWR_ready[i]         		= this->cpBank[i]->IsWR_ready();
-		this->spMemStatePkt->IsPRE_ready[i]        		= this->cpBank[i]->IsPRE_ready();
-		this->spMemStatePkt->IsACT_ready[i]        		= this->cpBank[i]->IsACT_ready();
-		this->spMemStatePkt->IsREF_ready[i]      		= this->cpBank[i]->IsREF_ready();
-		this->spMemStatePkt->forced_PRE[i]         		= this->cpBank[i]->forced_PRE();
-		this->spMemStatePkt->forced_REFI[i]         	= this->cpBank[i]->forced_REFI();
-		this->spMemStatePkt->IsFirstData_Read_ready[i]  = this->cpBank[i]->IsFirstData_Read_ready();
-		this->spMemStatePkt->IsFirstData_Write_ready[i] = this->cpBank[i]->IsFirstData_Write_ready();
-		this->spMemStatePkt->IsBankPrepared[i]     		= this->cpBank[i]->IsBankPrepared();
-		this->spMemStatePkt->nActivatedRow[i]      		= this->cpBank[i]->GetActivatedRow();
+		this->spMemStatePkt->eMemState[i]          	= this->cpBank[i]->GetMemState();
+		this->spMemStatePkt->IsRD_ready[i]         	= this->cpBank[i]->IsRD_ready();
+		this->spMemStatePkt->IsWR_ready[i]         	= this->cpBank[i]->IsWR_ready();
+		this->spMemStatePkt->IsPRE_ready[i]        	= this->cpBank[i]->IsPRE_ready();
+		this->spMemStatePkt->IsACT_ready[i]        	= this->cpBank[i]->IsACT_ready();
+		this->spMemStatePkt->IsREF_ready[i]      	= this->cpBank[i]->IsREF_ready();
+		this->spMemStatePkt->forced_PRE[i]         	= this->cpBank[i]->forced_PRE();
+		this->spMemStatePkt->forced_REFI[i]         = this->cpBank[i]->forced_REFI();
+		this->spMemStatePkt->IsFirstData_ready[i]	= this->cpBank[i]->IsFirstData_ready();
+		this->spMemStatePkt->IsBankPrepared[i]     	= this->cpBank[i]->IsBankPrepared();
+		this->spMemStatePkt->nActivatedRow[i]      	= this->cpBank[i]->GetActivatedRow();
 		
 		// Obtain global info and override 
 		if (this->IsRD_global_ready(i) == ERESULT_TYPE_NO) {
