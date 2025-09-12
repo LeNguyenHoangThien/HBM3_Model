@@ -69,6 +69,7 @@ public:
 	// Cmd
 	EResultType	SetMemCmdPkt(EMemCmdType eCmd, int nBank, int nRow);	// Cmd (to send to Mem) in current cycle
 	EResultType	SetMemCmdPkt(SPMemCmdPkt spMemCmdPkt);
+	EResultType Handle_PRE_and_REF(int64_t nCycle);
 
 	EResultType	UpdateState(int64_t nCycle);
 
@@ -87,12 +88,15 @@ public:
 private:
         // Original
 	string		cName;
-	int		nMemCh;							// Slave (channel) num
+	int			nMemCh;								// Slave (channel) num
+	int				previous_nBank;					// Previous Access Bank (for PRE/REF handling)
+	vector<int> 	need_Refresing; 				// Vector of Banks need to be Refreshed
+	bool			prepare_Refresing[BANK_NUM];	// Prepare for refreshing (for PRE/REF handling)
 
 	// Request queue
 	CPQ		cpQ_AR;	        					// Request Q Ax (before schedule)
 	CPQ		cpQ_AW;	
-	CPQ		cpQ_W;							// Request Q W  (before schedule)
+	CPQ		cpQ_W;								// Request Q W  (before schedule)
 
 	// Request FIFO
 	CPFIFO		cpFIFO_AR;						// Request FIFO Ax (after schedule)
@@ -104,18 +108,18 @@ private:
 	CPScheduler	cpScheduler;	
 
 	// Cmd
-	SPMemCmdPkt	spMemCmdPkt;						// Cmd, bank, row in current cycle (after schedule)
+	SPMemCmdPkt	spMemCmdPkt;					// Cmd, bank, row in current cycle (after schedule)
 	
 	// Memory
 	CPMem		cpMem;
 
 	// Stat
-	int		nAR;							// Number AR 
+	int		nAR;								// Number AR 
 	int		nAW;
 	int		nW;
 	int		nR;
 	int		nB;
-	int		nPTW;							// Number any PTW 
+	int		nPTW;								// Number any PTW 
 
 	int		nACT_cmd_AR;						// ACT cmd for AR
 	int		nPRE_cmd_AR;
@@ -127,15 +131,15 @@ private:
 	int		nWR_cmd_AW;
 	int		nNOP_cmd_AW;
 
-	int		nACT_cmd;						// ACT cmd
+	int		nACT_cmd;							// ACT cmd
 	int		nPRE_cmd;
 	int		nRD_cmd;
 	int		nWR_cmd;
 	int		nNOP_cmd;
 
-	int		nMax_Q_AR_Occupancy;					// Max occupancy req Q 
+	int		nMax_Q_AR_Occupancy;				// Max occupancy req Q 
 	int		nMax_Q_AW_Occupancy;
-	int		nTotal_Q_AR_Occupancy;					// Accumulate occupancy
+	int		nTotal_Q_AR_Occupancy;				// Accumulate occupancy
 	int		nTotal_Q_AW_Occupancy;
 
 	int		nMax_Q_AR_Wait;						// Max waiting cycles req Q all entries
@@ -145,9 +149,9 @@ private:
 	int		nEmpty_Q_AW_cycles;
 	int		nEmpty_Q_Ax_cycles;
 
-	int		nMax_Q_AR_Scheduled_Wait;				// Max waiting cycle req Q "scheduled" entry
+	int		nMax_Q_AR_Scheduled_Wait;			// Max waiting cycle req Q "scheduled" entry
 	int		nMax_Q_AW_Scheduled_Wait; 
-	int		nTotal_Q_AR_Scheduled_Wait;				// Accumulate waiting cycle req Q "scheduled"
+	int		nTotal_Q_AR_Scheduled_Wait;			// Accumulate waiting cycle req Q "scheduled"
 	int		nTotal_Q_AW_Scheduled_Wait; 
 };
 

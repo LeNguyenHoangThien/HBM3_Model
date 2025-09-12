@@ -189,7 +189,7 @@
 //-------------------------------------------------------------
 // (MMU) ON or OFF 
 //-------------------------------------------------------------
-// #define MMU_OFF
+#define MMU_OFF
 // #define MMU_ON
 
 //-------------------------------------------------------------
@@ -234,11 +234,12 @@
 //-------------------------------------------------------------
 // (MMU) Buddy page-table 
 //-------------------------------------------------------------
-#define BUDDY_ENABLE	   // DUONGTRAN uncommnent
+// Why I have to comment out this to make it work????
+// #define BUDDY_ENABLE	   // DUONGTRAN uncommnent
 
-#define PTW_SIZE  8			// Arch64
+// #define PTW_SIZE  8			// Arch64
 
-#define GROUP_SIZE			NUM_PTE_PTW				// Number of PTEs ared group (CAMB)
+// #define GROUP_SIZE			NUM_PTE_PTW				// Number of PTEs ared group (CAMB)
 
 
 //-------------------------------------------------------------
@@ -443,11 +444,13 @@
 //-------------------------------------------------------------
 // (Master) Linear addr map
 //-------------------------------------------------------------
-#define AR_LIAM
+// #define AR_LIAM
 // #define AR_BFAM 
+// #define AR_HBM_INTERLEAVING
 
-#define AW_LIAM
-// #define AW_BFAM 
+// #define AW_LIAM
+// #define AW_BFAM
+// #define AW_HBM_INTERLEAVING
 
 
 //-------------------------------------------------------------

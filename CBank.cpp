@@ -416,7 +416,7 @@ EResultType CBank::forced_REFI() {
 		};
 
 	} else {
-		if (this->nCnt_REFIab >= static_cast<int>(std::ceil(tREFI*0.95))) {  // The nCnt_REFIab > 0 only if it is activated
+		if (this->nCnt_REFIab >= static_cast<int>(std::ceil(tREFI*0.85))) {  // The nCnt_REFIab > 0 only if it is activated
 
 			return (ERESULT_TYPE_YES);
 		};
@@ -643,7 +643,7 @@ EResultType CBank::UpdateState() {
 		assert (this->nCnt_WR  == 0);		// WR2PRE				: Finished. Successfully receive PRE command.
 		assert (this->nCnt_RP  >  0);		// PRE2ACT				: Precharging
 		#endif
-
+		
 		if (this->nCnt_RP < tRP) { // PRE2ACT. Precharge on going
 
 		    this->eMemState = EMEM_STATE_TYPE_PRECHARGING;

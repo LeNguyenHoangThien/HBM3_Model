@@ -864,6 +864,9 @@ int64_t CAddrGen::GetAddr(string cAddrMap) {
 	else if (cAddrMap == "TILE") {
 		nAddr = this->GetAddr_TILE();
 	}
+	else if (cAddrMap == "HBM_INTERLEAVE") {
+		nAddr = this->GetAddr_BG_and_SID_Interleaving();
+	}
 	else {
 		assert(0);
 	};
@@ -1726,6 +1729,60 @@ int64_t CAddrGen::GetAddr_TILE() {
 };
 
 
+//---------------------------------------------------
+// Get Address (HBM's experimental address map)
+//	Bank interleaved address map
+//	1. Get LIAM address
+//	2. Do the Bank-Interleaving
+//---------------------------------------------------
+int64_t CAddrGen::GetAddr_BG_and_SID_Interleaving() {
+		// Check AddrGen finished
+	if (this->eFinalTrans == ERESULT_TYPE_YES) {
+		return (-1);
+	};
+
+	// Generate LIAM address	
+	int64_t nAddr = this->GetAddr_LIAM();
+
+	int64_t nRow  = GetRowNum_AMap_Global(nAddr);			// Global. Address map
+	int     nBank = GetBankNum_AMap_Global(nAddr);
+	int     nCol  = GetColNum_AMap_Global(nAddr);
+	
+	//printf("Row = %d, Bank = %d, Col = %d\n", nRow, nBank, nCol);
+
+	nBank = (nCol/64) % BANK_NUM; // FOR Test Bank/BankGroup/SID interleaving only
+	int nBank_new = nBank;
+
+	#if defined(BANKGROUP_INTERLEAVING)
+	nBank_new = (nBank*4) % BANK_NUM + static_cast<int>(std::floor((nBank*4) / BANK_NUM));
+	#elif defined(SID_INTERLEAVING)
+	nBank_new = (nBank*8) % BANK_NUM + (nBank*8) / BANK_NUM;
+	#else
+	nBank_new = nBank; // Bank Interleaving
+	#endif
+
+	// Debug
+	assert (nBank_new >= 0);
+	assert (nBank_new < BANK_NUM);
+
+	// Get bank-flipped address
+	int64_t nAddr_new = GetAddr_AMap_Global(nRow, nBank_new, nCol); 			// Address map
+
+	// Check last transaction application
+	if (this->nCurTrans == this->nNumTotalTrans) {
+		// this->SetFinalTrans(ERESULT_TYPE_YES);
+		this->eFinalTrans = ERESULT_TYPE_YES;
+	};
+
+	// Set temp signal
+	this->IsTransGenThisCycle = ERESULT_TYPE_YES;
+
+	// Debug
+	// this->CheckAddr();
+
+	return (nAddr_new);
+}
+
 //------------------------------------------
 // Update state 
 // 	nApos, nBpos, nAsizeT, nBsizeT
@@ -2128,7 +2185,7 @@ EResultType CAddrGen::SetNumPixelTrans() {
 
 	int nNumPixelTrans = -1; 
 
-	if (this->cAddrMap == "LIAM" or this->cAddrMap == "BFAM" or this->cAddrMap == "CIAM") {
+	if (this->cAddrMap == "LIAM" or this->cAddrMap == "BFAM" or this->cAddrMap == "CIAM" or this->cAddrMap == "HBM_INTERLEAVE" ) {
 
 		nNumPixelTrans = this->nAsizeT;						// FIXME check
 	}

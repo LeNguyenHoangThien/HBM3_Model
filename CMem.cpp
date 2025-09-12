@@ -354,6 +354,7 @@ SPMemStatePkt CMem::GetMemStatePkt() {
 // cycle counter
 EResultType CMem::UpdateState() {
 
+	int nBankGroup = static_cast<int>(std::floor(this->spMemCmdPkt->nBank/BanksPerBGroup));
 	// Update banks
 	for (int i=0; i<BANK_NUM; i++) {
 		this->cpBank[i]->UpdateState();
@@ -362,7 +363,7 @@ EResultType CMem::UpdateState() {
 	// Update global counter CCD
 	// Assumption: CCD covers RD2RD, RD2WR, WR2RD, WR2WR 
 	if (this->spMemCmdPkt->eMemCmd == EMEM_CMD_TYPE_RD or this->spMemCmdPkt->eMemCmd == EMEM_CMD_TYPE_WR) {
-		this->nCnt_CCD[this->spMemCmdPkt->nBank/BanksPerBGroup] = 1;  // Global. RD2RD. WR2WR
+		this->nCnt_CCD[nBankGroup] = 1;  // Global. RD2RD. WR2WR
 	}
 	else {
 		for (int i=0; i<BANK_NUM/BanksPerBGroup; i++) {
@@ -371,7 +372,7 @@ EResultType CMem::UpdateState() {
 	};
 
 	if (this->spMemCmdPkt->eMemCmd == EMEM_CMD_TYPE_WR) {
-		this->nCnt_WTR[this->spMemCmdPkt->nBank/BanksPerBGroup] = 1;  // Global. RD2RD. WR2WR
+		this->nCnt_WTR[nBankGroup] = 1;  // Global. RD2RD. WR2WR
 	}
 	else {
 		for (int i=0; i<BANK_NUM/BanksPerBGroup; i++) {
@@ -380,7 +381,7 @@ EResultType CMem::UpdateState() {
 	};
 
 	if (this->spMemCmdPkt->eMemCmd == EMEM_CMD_TYPE_RD) {
-		this->nCnt_RTW[this->spMemCmdPkt->nBank/BanksPerBGroup] = 1;  // Global. RD2RD. WR2WR
+		this->nCnt_RTW[nBankGroup] = 1;  // Global. RD2RD. WR2WR
 	}
 	else {
 		for (int i=0; i<BANK_NUM/BanksPerBGroup; i++) {
@@ -390,7 +391,7 @@ EResultType CMem::UpdateState() {
 
 	// Update global counter RRD
 	if (this->spMemCmdPkt->eMemCmd == EMEM_CMD_TYPE_ACT) {
-		this->nCnt_RRD[this->spMemCmdPkt->nBank/BanksPerBGroup] = 1;  // Global. ACT2ACT diff bank
+		this->nCnt_RRD[nBankGroup] = 1;  // Global. ACT2ACT diff bank
 	}
 	else {
 		for (int i=0; i<BANK_NUM/BanksPerBGroup; i++) this->nCnt_RRD[i] ++; // obliviously increase

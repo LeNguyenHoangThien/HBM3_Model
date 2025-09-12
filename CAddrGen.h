@@ -232,6 +232,7 @@ public:
 	int64_t		GetAddr_LIAM();
 	int64_t		GetAddr_CIAM();
 	int64_t		GetAddr_BFAM();
+	int64_t		GetAddr_BG_and_SID_Interleaving();
 
 	// BFAM
 	int		GetBank_BFAM_BF(int nBank);  						// Get flipped bank number. BANK_FLIP, BANK_FLIP_MINUS algorithm

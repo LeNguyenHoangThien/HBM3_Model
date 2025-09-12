@@ -52,8 +52,12 @@ CSLV::CSLV(string cName, int nMemCh) {
 	this->spMemCmdPkt = new SMemCmdPkt;
 
 	// Initialize
-        this->cName = cName;
+    this->cName = cName;
 	this->nMemCh = nMemCh;
+
+
+	this->previous_nBank   = -1;
+	for (int i = 0; i < BANK_NUM; i++) { this->prepare_Refresing[i] = false; }
 
 	this->nAR   = -1;
 	this->nAW   = -1;
@@ -155,6 +159,9 @@ EResultType CSLV::Reset() {
 	this->spMemCmdPkt->eMemCmd = EMEM_CMD_TYPE_UNDEFINED;
 	this->spMemCmdPkt->nBank   = -1; 
 	this->spMemCmdPkt->nRow    = -1; 
+
+	this->previous_nBank   = -1;
+	for (int i = 0; i < BANK_NUM; i++) { this->prepare_Refresing[i] = false; }
 
 	// Stat
 	this->nAR  = 0;
@@ -525,7 +532,7 @@ EResultType CSLV::Do_AR_fwd_MC_Backend_Response(int64_t nCycle) {
 	};
 
 	#ifdef DEBUG_SLV
-	printf("[Cycle %3ld: SLV.Do_AR_fwd_MC_Backend_Response] R data ready bank %d, row 0x%x.\n", nCycle, nBank, spMemStatePkt->nActivatedRow[nBank]);
+	//printf("[Cycle %3ld: SLV.Do_AR_fwd_MC_Backend_Response] R data ready bank %d, row 0x%x.\n", nCycle, nBank, spMemStatePkt->nActivatedRow[nBank]);
 	#endif
 	
 	// Pop AR
@@ -707,15 +714,21 @@ EResultType CSLV::Do_W_fwd_MC_Frontend(int64_t nCycle) {
 //---------------------------------------------------
 EResultType CSLV::Do_Ax_fwd_MC_Backend_Request(int64_t nCycle) {
 
+	if (this->Handle_PRE_and_REF(nCycle) == ERESULT_TYPE_SUCCESS) {
+		#ifdef DEBUG_SLV
+		//printf("[Cycle %3ld: SLV.Do_Ax_fwd_MC_Backend_Request] PRE/REF command issued.\n", nCycle);
+		#endif
+
+		return (ERESULT_TYPE_SUCCESS);
+	}
+
 	// Check queue 
 	if (this->cpQ_AR->IsEmpty() == ERESULT_TYPE_YES and this->cpQ_AW->IsEmpty() == ERESULT_TYPE_YES) {
-
-		// Set NOP cmd
 		this->SetMemCmdPkt(EMEM_CMD_TYPE_NOP, -1, -1);
 		this->cpMem->SetMemCmdPkt(EMEM_CMD_TYPE_NOP, -1, -1);
 		return (ERESULT_TYPE_SUCCESS);
 	};
-	
+
 	// Set mem state
 	SPMemCmdPkt spMemCmdPkt = new SMemCmdPkt;
 	SPMemStatePkt spMemStatePkt = new tagSMemStatePkt;
@@ -723,58 +736,6 @@ EResultType CSLV::Do_Ax_fwd_MC_Backend_Request(int64_t nCycle) {
 	spMemStatePkt = this->cpMem->GetMemStatePkt();
 	this->cpQ_AR->SetMemStateCmdPkt(spMemStatePkt);
 	this->cpQ_AW->SetMemStateCmdPkt(spMemStatePkt);
-
-	for (int i = 0; i < BANK_NUM; i++) {
-		if (spMemStatePkt->forced_PRE[i] == ERESULT_TYPE_YES) {
-			
-			spMemCmdPkt->eMemCmd = EMEM_CMD_TYPE_PRE;
-			spMemCmdPkt->nBank = i;
-			spMemCmdPkt->nRow  = 0; // PRE and REFpb: Row is don't care
-			this->SetMemCmdPkt(spMemCmdPkt);
-			this->cpMem->SetMemCmdPkt(spMemCmdPkt);
-
-			#ifdef DEBUG_SLV
-			string cCmd = Convert_eMemCmd2string(spMemCmdPkt->eMemCmd);
-			printf("[Cycle %3ld: SLV.Do_Ax_fwd_MC_Backend_Request] MC cmd %s (Bank %d, Row 0x%x) sent to bank %d, row 0x%x \n", nCycle, cCmd.c_str(), spMemCmdPkt->nBank, spMemCmdPkt->nRow, spMemCmdPkt->nBank, cpMem->cpBank[spMemCmdPkt->nBank]->GetActivatedRow());
-			#endif
-
-			return (ERESULT_TYPE_SUCCESS);
-
-		} else if (	spMemStatePkt->forced_REFI[i] == ERESULT_TYPE_YES) {
-			if (spMemStatePkt->IsREF_ready[i] == ERESULT_TYPE_YES) {
-
-				spMemCmdPkt->eMemCmd = EMEM_CMD_TYPE_REFpb;
-				spMemCmdPkt->nBank = i;
-				spMemCmdPkt->nRow  = 0; // PRE and REFpb: Row is don't care
-				this->SetMemCmdPkt(spMemCmdPkt);
-				this->cpMem->SetMemCmdPkt(spMemCmdPkt);
-
-				#ifdef DEBUG_SLV
-				string cCmd = Convert_eMemCmd2string(spMemCmdPkt->eMemCmd);
-				printf("[Cycle %3ld: SLV.Do_Ax_fwd_MC_Backend_Request] MC cmd %s (Bank %d, Row 0x%x) sent to bank %d, row 0x%x \n", nCycle, cCmd.c_str(), spMemCmdPkt->nBank, spMemCmdPkt->nRow, spMemCmdPkt->nBank, cpMem->cpBank[spMemCmdPkt->nBank]->GetActivatedRow());
-				#endif
-
-				return (ERESULT_TYPE_SUCCESS);
-
-			}
-			else if (spMemStatePkt->IsPRE_ready[i] == ERESULT_TYPE_YES) {
-
-				spMemCmdPkt->eMemCmd = EMEM_CMD_TYPE_PRE;
-				spMemCmdPkt->nBank = i;
-				spMemCmdPkt->nRow  = 0; // PRE and REFpb: Row is don't care
-				this->SetMemCmdPkt(spMemCmdPkt);
-				this->cpMem->SetMemCmdPkt(spMemCmdPkt);
-
-				#ifdef DEBUG_SLV
-				string cCmd = Convert_eMemCmd2string(spMemCmdPkt->eMemCmd);
-				printf("[Cycle %3ld: SLV.Do_Ax_fwd_MC_Backend_Request] MC cmd %s (Bank %d, Row 0x%x) sent to bank %d, row 0x%x \n", nCycle, cCmd.c_str(), spMemCmdPkt->nBank, spMemCmdPkt->nRow, spMemCmdPkt->nBank, cpMem->cpBank[spMemCmdPkt->nBank]->GetActivatedRow());
-				#endif
-
-				return (ERESULT_TYPE_SUCCESS);
-
-			}
-		}
-	}
 
 	// Schedule
 	#ifdef BANK_HIT_FIRST
@@ -787,6 +748,14 @@ EResultType CSLV::Do_Ax_fwd_MC_Backend_Request(int64_t nCycle) {
 	// Get cmd
 	if (spScheduledMUD != NULL) {	
 		spMemCmdPkt = spScheduledMUD->spMemCmdPkt;
+
+		if (this->prepare_Refresing[spMemCmdPkt->nBank] == true) {
+			this->SetMemCmdPkt(EMEM_CMD_TYPE_NOP, -1, -1);
+			this->cpMem->SetMemCmdPkt(EMEM_CMD_TYPE_NOP, -1, -1);
+			return (ERESULT_TYPE_SUCCESS);
+		};
+
+		//printf("[Cycle %3ld: SLV.Do_Ax_fwd_MC_Backend_Request] Scheduled %s (Bank %d, Row 0x%x) \n", nCycle, (spScheduledMUD->eUDType == EUD_TYPE_AR) ? "AR" : "AW", spMemCmdPkt->nBank, spMemCmdPkt->nRow);
 	} 
 	else {
 		spMemCmdPkt->eMemCmd = EMEM_CMD_TYPE_NOP;
@@ -849,6 +818,9 @@ EResultType CSLV::Do_Ax_fwd_MC_Backend_Request(int64_t nCycle) {
 		if (this->nMax_Q_AR_Scheduled_Wait < spScheduledMUD->nCycle_wait) {
 			this->nMax_Q_AR_Scheduled_Wait = spScheduledMUD->nCycle_wait;
 		};
+	
+		if (this->previous_nBank >= 0) this->need_Refresing.push_back(this->previous_nBank);
+		this->previous_nBank   = spMemCmdPkt->nBank;
 		this->nTotal_Q_AR_Scheduled_Wait += spScheduledMUD->nCycle_wait;
 
 		#ifdef DEBUG_SLV
@@ -891,6 +863,9 @@ EResultType CSLV::Do_Ax_fwd_MC_Backend_Request(int64_t nCycle) {
 		if (this->nMax_Q_AW_Scheduled_Wait < spScheduledMUD->nCycle_wait) {
 			this->nMax_Q_AW_Scheduled_Wait = spScheduledMUD->nCycle_wait;
 		};
+
+		if (this->previous_nBank >= 0) this->need_Refresing.push_back(this->previous_nBank);
+		this->previous_nBank   = spMemCmdPkt->nBank;
 		this->nTotal_Q_AW_Scheduled_Wait += spScheduledMUD->nCycle_wait;
 
 		#ifdef DEBUG_SLV
@@ -1272,6 +1247,97 @@ EResultType CSLV::SetMemCmdPkt(EMemCmdType eCmd, int nBank, int nRow) {
 	return (ERESULT_TYPE_SUCCESS);
 };
 
+
+EResultType CSLV::Handle_PRE_and_REF(int64_t nCycle) {
+
+	SPMemCmdPkt spMemCmdPkt = new SMemCmdPkt;
+	SPMemStatePkt spMemStatePkt = new tagSMemStatePkt;
+
+	spMemStatePkt = this->cpMem->GetMemStatePkt();
+	int Bank_for_Refresing;
+
+	if (this->need_Refresing.size() > 0) {
+		
+		Bank_for_Refresing = this->need_Refresing[0];
+
+	} else {
+
+		Bank_for_Refresing = -1;
+
+	}
+
+	if (this->previous_nBank == -1) {
+		return (ERESULT_TYPE_FAIL);
+	};
+
+	if (spMemStatePkt->forced_PRE[this->previous_nBank] == ERESULT_TYPE_YES) {
+			
+		spMemCmdPkt->eMemCmd = EMEM_CMD_TYPE_PRE;
+		spMemCmdPkt->nBank = this->previous_nBank;
+		spMemCmdPkt->nRow  = -1; // PRE and REFpb: Row is don't care
+		this->SetMemCmdPkt(spMemCmdPkt);
+		this->cpMem->SetMemCmdPkt(spMemCmdPkt);
+
+		#ifdef DEBUG_SLV
+		string cCmd = Convert_eMemCmd2string(spMemCmdPkt->eMemCmd);
+		printf("[Cycle %3ld: SLV.Do_Ax_fwd_MC_Backend_Request111] MC cmd %s (Bank %d, Row 0x%x) sent to bank %d, row 0x%x \n", nCycle, cCmd.c_str(), spMemCmdPkt->nBank, spMemCmdPkt->nRow, spMemCmdPkt->nBank, cpMem->cpBank[spMemCmdPkt->nBank]->GetActivatedRow());
+		#endif
+
+		return (ERESULT_TYPE_SUCCESS);
+
+	} else if (	spMemStatePkt->forced_REFI[this->previous_nBank] 	== ERESULT_TYPE_YES and 
+				this->prepare_Refresing[this->previous_nBank] 		== false) {
+				
+		if (spMemStatePkt->eMemState[this->previous_nBank] != EMEM_STATE_TYPE_PRECHARGING) { // Force PRE
+				
+			if (spMemStatePkt->IsPRE_ready[this->previous_nBank] == ERESULT_TYPE_NO) {
+				spMemCmdPkt->eMemCmd = EMEM_CMD_TYPE_NOP;
+				spMemCmdPkt->nBank =  this->previous_nBank;
+				spMemCmdPkt->nRow  = -1;
+				this->SetMemCmdPkt(spMemCmdPkt);
+				this->cpMem->SetMemCmdPkt(spMemCmdPkt);
+				return (ERESULT_TYPE_SUCCESS);
+			}
+
+			this->prepare_Refresing[this->previous_nBank]=true;
+
+			spMemCmdPkt->eMemCmd = EMEM_CMD_TYPE_PRE;
+			spMemCmdPkt->nBank = this->previous_nBank;
+			spMemCmdPkt->nRow  = 0; // PRE and REFpb: Row is don't care
+			this->SetMemCmdPkt(spMemCmdPkt);
+			this->cpMem->SetMemCmdPkt(spMemCmdPkt);
+
+			#ifdef DEBUG_SLV
+			string cCmd = Convert_eMemCmd2string(spMemCmdPkt->eMemCmd);
+			printf("[Cycle %3ld: SLV.Do_Ax_fwd_MC_Backend_Request222] MC cmd %s (Bank %d, Row 0x%x) sent to bank %d, row 0x%x \n", nCycle, cCmd.c_str(), spMemCmdPkt->nBank, spMemCmdPkt->nRow, spMemCmdPkt->nBank, cpMem->cpBank[spMemCmdPkt->nBank]->GetActivatedRow());
+			#endif
+			
+			return (ERESULT_TYPE_SUCCESS);
+		}
+	} else if (	spMemStatePkt->forced_REFI[Bank_for_Refresing] 	== ERESULT_TYPE_YES and 
+				this->prepare_Refresing[Bank_for_Refresing] 	== true) {
+		
+		if (spMemStatePkt->IsREF_ready[Bank_for_Refresing] == ERESULT_TYPE_YES) {
+
+			spMemCmdPkt->eMemCmd = EMEM_CMD_TYPE_REFpb;
+			spMemCmdPkt->nBank = Bank_for_Refresing;
+			spMemCmdPkt->nRow  = 0; // PRE and REFpb: Row is don't care
+			this->SetMemCmdPkt(spMemCmdPkt);
+			this->cpMem->SetMemCmdPkt(spMemCmdPkt);
+
+			#ifdef DEBUG_SLV
+			string cCmd = Convert_eMemCmd2string(spMemCmdPkt->eMemCmd);
+			printf("[Cycle %3ld: SLV.Do_Ax_fwd_MC_Backend_Request] MC cmd %s (Bank %d, Row 0x%x) sent to bank %d, row 0x%x \n", nCycle, cCmd.c_str(), spMemCmdPkt->nBank, spMemCmdPkt->nRow, spMemCmdPkt->nBank, cpMem->cpBank[spMemCmdPkt->nBank]->GetActivatedRow());
+			#endif
+
+			this->prepare_Refresing[Bank_for_Refresing]=false;
+			this->need_Refresing.erase(this->need_Refresing.begin());
+			return (ERESULT_TYPE_SUCCESS);
+
+		} 
+	}
+	return (ERESULT_TYPE_FAIL);
+}
 
 // Debug
 EResultType CSLV::CheckLink() {
