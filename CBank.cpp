@@ -389,6 +389,7 @@ EResultType CBank::IsREF_ready() {
 //--------------------------------------
 EResultType CBank::forced_PRE() {
 
+	#ifdef PRECHARGE
 	// Check state	
 	if (this->nCnt_RAS >= static_cast<int>(std::ceil(tRAS_max*0.95))) {  // The nCnt_RAS > 0 only if it is activated
 
@@ -398,6 +399,7 @@ EResultType CBank::forced_PRE() {
 		return (ERESULT_TYPE_YES);
 
 	};
+	#endif
 
 	return (ERESULT_TYPE_NO);	
 };
@@ -407,6 +409,7 @@ EResultType CBank::forced_PRE() {
 //--------------------------------------	
 EResultType CBank::forced_REFI() {
 
+	#ifdef REFRESH
 	// Check state
 	if (this->firstRefresh == false) {
 
@@ -417,10 +420,11 @@ EResultType CBank::forced_REFI() {
 
 	} else {
 		if (this->nCnt_REFIab >= static_cast<int>(std::ceil(tREFI*0.85))) {  // The nCnt_REFIab > 0 only if it is activated
-
+			
 			return (ERESULT_TYPE_YES);
 		};
 	}
+	#endif
 
 	return (ERESULT_TYPE_NO);	
 };
@@ -446,9 +450,16 @@ EResultType CBank::UpdateState() {
 	#ifdef DEBUG
 	// this->CheckCnt();
 	this->CheckCmdReady();
-	assert (this->nCnt_RAS <= tRAS_max); // Always Check Condition - ACT2PRE
 	assert (this->nCnt_ACT_cmd <= 4); // Always Check Condition - tFAW
-	assert (this->nCnt_REFIab <= tREFI);
+
+	#ifdef PRECHARGE
+		assert (this->nCnt_RAS <= tRAS_max); // Always Check Condition - ACT2PRE
+	#endif
+
+	#ifdef REFRESH
+		assert (this->nCnt_REFIab <= tREFI);
+	#endif
+
 	#endif
 
 	//------------------------------------

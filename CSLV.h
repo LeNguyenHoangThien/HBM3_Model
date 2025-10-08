@@ -109,6 +109,8 @@ private:
 
 	// Cmd
 	SPMemCmdPkt	spMemCmdPkt;					// Cmd, bank, row in current cycle (after schedule)
+	// State
+	SPMemStatePkt	spMemStatePkt;					// Cmd, bank, row in current cycle (after schedule)
 	
 	// Memory
 	CPMem		cpMem;

@@ -373,20 +373,24 @@ int main() {
 	string cAR_AddrMap;
 	string cAW_AddrMap;
 	
-	#ifdef AR_LIAM
+	#if defined(AR_LIAM)
 	cAR_AddrMap = "LIAM";
-	#elif AR_BFAM
+	#elif defined(AR_BFAM) 
 	cAR_AddrMap = "BFAM";
-	#elif AR_TILE
+	#elif defined(AR_TILE)
 	cAR_AddrMap = "TILE";
+	#elif defined(AR_HBM_INTERLEAVE)
+	cAR_AddrMap = "HBM_INTERLEAVE";
 	#endif
 	
-	#ifdef AW_LIAM
+	#if defined(AW_LIAM)
 	cAW_AddrMap = "LIAM";
-	#elif AW_BFAM
+	#elif defined(AW_BFAM)
 	cAW_AddrMap = "BFAM";
-	#elif AW_TILE
+	#elif defined(AW_TILE)
 	cAW_AddrMap = "TILE";
+	#elif defined(AW_HBM_INTERLEAVE)
+	cAW_AddrMap = "HBM_INTERLEAVE";
 	#endif
 
 

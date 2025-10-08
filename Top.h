@@ -457,7 +457,7 @@
 // (Master) BFAM addr map
 //-------------------------------------------------------------
 // #define BANK_FLIP								// Patent
-#define BANK_FLIP_PLUS								// Superpage based BFAM
+// #define BANK_FLIP_PLUS								// Superpage based BFAM
 // #define BANK_SHUFFLE								// Bank Shuffling BSAM (on LIAM)
 // #define SPLIT_BANK_SHUFFLE							// Bank Shuffling (on SLIAM)
 
@@ -474,7 +474,8 @@
 //-------------------------------------------------------------
 // (Memory) Number of banks
 //-------------------------------------------------------------
-#define BANK_NUM		32 
+//#define BANK_NUM		32 
+#define BANK_NUM_PER_GROUP		4
 
 
 //-------------------------------------------------------------
@@ -491,6 +492,8 @@
 #define PAGE_SIZE		2048						// 2kB
 // #define PAGE_SIZE		1024						// 1kB
 // #define PAGE_SIZE		512 						// 512B
+
+#define HBM_COMPLICATED_INTERLEAVING
 
 
 //---------------------------

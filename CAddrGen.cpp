@@ -865,9 +865,10 @@ int64_t CAddrGen::GetAddr(string cAddrMap) {
 		nAddr = this->GetAddr_TILE();
 	}
 	else if (cAddrMap == "HBM_INTERLEAVE") {
-		nAddr = this->GetAddr_BG_and_SID_Interleaving();
+		nAddr = this->GetAddr_HBM_Interleaving();
 	}
 	else {
+		printf("Error: AddrGen %s, Unknown address map %s\n", this->cName.c_str(), cAddrMap.c_str());
 		assert(0);
 	};
 
@@ -1319,6 +1320,9 @@ int CAddrGen::GetBank_BFAM_BF(int nBank) {
 		else if (nBank == 6) nBank_new = 2;
 		else if (nBank == 7) nBank_new = 3;
 		else assert (0);
+	}	
+	else if (BANK_NUM <= 64) {
+		nBank_new = (nBank+BANK_NUM/2) % BANK_NUM;
 	}
 	else {
 		assert (0);
@@ -1735,7 +1739,7 @@ int64_t CAddrGen::GetAddr_TILE() {
 //	1. Get LIAM address
 //	2. Do the Bank-Interleaving
 //---------------------------------------------------
-int64_t CAddrGen::GetAddr_BG_and_SID_Interleaving() {
+int64_t CAddrGen::GetAddr_HBM_Interleaving() {
 		// Check AddrGen finished
 	if (this->eFinalTrans == ERESULT_TYPE_YES) {
 		return (-1);
@@ -1744,29 +1748,40 @@ int64_t CAddrGen::GetAddr_BG_and_SID_Interleaving() {
 	// Generate LIAM address	
 	int64_t nAddr = this->GetAddr_LIAM();
 
-	int64_t nRow  = GetRowNum_AMap_Global(nAddr);			// Global. Address map
+	//int64_t nRow  = GetRowNum_AMap_Global(nAddr);			// Global. Address map
 	int     nBank = GetBankNum_AMap_Global(nAddr);
 	int     nCol  = GetColNum_AMap_Global(nAddr);
 	
 	//printf("Row = %d, Bank = %d, Col = %d\n", nRow, nBank, nCol);
 
-	nBank = (nCol/64) % BANK_NUM; // FOR Test Bank/BankGroup/SID interleaving only
-	int nBank_new = nBank;
+	//nBank = (nCol/64) % BANK_NUM; // FOR Test Bank/BankGroup/SID interleaving only
+	int nBank_new = (nBank*4)%BANK_NUM;
+	int nRow_new = nBank_new / 4;
+	int img_row = nAddr / IMGHB;
 
+	if(img_row > 0) {
+		nBank_new = ((nBank_new + (img_row*4)) % BANK_NUM) + (((nBank_new + (img_row*4)) / ((uint64_t)1 << ROW_WIDTH)));
+		nRow_new = nRow_new + img_row;
+	}
+
+/*
 	#if defined(BANKGROUP_INTERLEAVING)
-	nBank_new = (nBank*4) % BANK_NUM + static_cast<int>(std::floor((nBank*4) / BANK_NUM));
+		nBank_new = (nBank*4) % BANK_NUM + static_cast<int>(std::floor((nBank*4) / BANK_NUM));
 	#elif defined(SID_INTERLEAVING)
-	nBank_new = (nBank*8) % BANK_NUM + (nBank*8) / BANK_NUM;
+		nBank_new = (nBank*8) % BANK_NUM + (nBank*8) / BANK_NUM;
+	#elif defined(BANK_INTERLEAVING)
+		nBank_new = nBank; // Bank Interleaving
 	#else
-	nBank_new = nBank; // Bank Interleaving
+		assert(0);
 	#endif
+*/
 
 	// Debug
 	assert (nBank_new >= 0);
 	assert (nBank_new < BANK_NUM);
 
 	// Get bank-flipped address
-	int64_t nAddr_new = GetAddr_AMap_Global(nRow, nBank_new, nCol); 			// Address map
+	int64_t nAddr_new = GetAddr_AMap_Global(nRow_new, nBank_new, nCol); 			// Address map
 
 	// Check last transaction application
 	if (this->nCurTrans == this->nNumTotalTrans) {
@@ -1779,6 +1794,7 @@ int64_t CAddrGen::GetAddr_BG_and_SID_Interleaving() {
 
 	// Debug
 	// this->CheckAddr();
+
 
 	return (nAddr_new);
 }
