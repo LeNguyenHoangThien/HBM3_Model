@@ -1502,13 +1502,13 @@ EResultType CSLV::UpdateState(int64_t nCycle) {
 	if (this->nMax_Q_AR_Wait >= STARVATION_CYCLE) {
 	// if (this->nMax_Q_AR_Scheduled_Wait >= STARVATION_CYCLE) {
 		// printf("[Cycle %3ld: SLV.UpdateState] AR starvation occurs (%d cycles).\n", nCycle, this->nMax_Q_AR_Wait);
-		printf("[Cycle %3ld: SLV.UpdateState] AR starvation occurs (%d cycles).\n", nCycle, this->nMax_Q_AR_Scheduled_Wait);
+		printf("[Cycle %3ld: SLV.UpdateState] AR starvation occurs (%ld cycles).\n", nCycle, this->nMax_Q_AR_Scheduled_Wait);
 		assert (0);
 	}
 	if (this->nMax_Q_AW_Wait >= STARVATION_CYCLE) {
 	// if (this->nMax_Q_AW_Scheduled_Wait >= STARVATION_CYCLE) {
 		// printf("[Cycle %3ld: SLV.UpdateState] AW starvation occurs (%d cycles).\n", nCycle, this->nMax_Q_AW_Wait);
-		printf("[Cycle %3ld: SLV.UpdateState] AW starvation occurs (%d cycles).\n", nCycle, this->nMax_Q_AW_Scheduled_Wait);
+		printf("[Cycle %3ld: SLV.UpdateState] AW starvation occurs (%ld cycles).\n", nCycle, this->nMax_Q_AW_Scheduled_Wait);
 		assert (0);
 	}
 	// this->cpQ_AR->Display();
@@ -1568,8 +1568,8 @@ EResultType CSLV::PrintStat(int64_t nCycle, FILE *fp) {
 
 	printf("\t Max req Q all AR waiting cycles              : %d\n",	this->nMax_Q_AR_Wait);
 	printf("\t Max req Q all AW waiting cycles              : %d\n",	this->nMax_Q_AW_Wait);
-	printf("\t Max req Q scheduled AR waiting cycles        : %d\n",	this->nMax_Q_AR_Scheduled_Wait);
-	printf("\t Max req Q scheduled AW waiting cycles        : %d\n",	this->nMax_Q_AW_Scheduled_Wait);
+	printf("\t Max req Q scheduled AR waiting cycles        : %ld\n",	this->nMax_Q_AR_Scheduled_Wait);
+	printf("\t Max req Q scheduled AW waiting cycles        : %ld\n",	this->nMax_Q_AW_Scheduled_Wait);
 	printf("\t Avg req Q scheduled AR waiting cycles        : %1.2f\n",	(float)(this->nTotal_Q_AR_Scheduled_Wait)/this->nAR);
 	printf("\t Avg req Q scheduled AW waiting cycles        : %1.2f\n",	(float)(this->nTotal_Q_AW_Scheduled_Wait)/this->nAW);
 	printf("\t Avg req Q scheduled Ax waiting cycles        : %1.2f\n",	(float)(this->nTotal_Q_AR_Scheduled_Wait + this->nTotal_Q_AW_Scheduled_Wait)/(this->nAR + this->nAW));

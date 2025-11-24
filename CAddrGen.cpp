@@ -852,6 +852,211 @@ int64_t CAddrGen::GetAddr(string cAddrMap) {
 		};
 		#endif
 
+		// Auto BGFAM selection 	
+		#ifdef AUTO_BGFAM_ENABLE
+		float nQuotient = (float)( (float)(IMGHB)/(float)(SUPER_PAGE_SIZE) );
+		assert(nQuotient != -1);
+
+		if(BANK_NUM==16) {
+			if ((nQuotient > 0.4375 and nQuotient < 0.5625) or \
+		 	  	(nQuotient > 0.9375 and nQuotient < 1.0625) or \
+				(nQuotient > 1.4375 and nQuotient < 1.5625) or \
+		 	  	(nQuotient > 1.9375 and nQuotient < 2.0625) or \
+				(nQuotient > 2.4375 and nQuotient < 2.5625) or \
+		 	  	(nQuotient > 2.9375 and nQuotient < 3.0625) or \
+				(nQuotient > 3.4375 and nQuotient < 3.5625) or \
+		 	  	(nQuotient > 3.9375 and nQuotient < 4.0625) or \
+				(nQuotient > 4.4375 and nQuotient < 4.5625) or \
+		 	  	(nQuotient > 4.9375 and nQuotient < 5.0625) or \
+				(nQuotient > 5.4375 and nQuotient < 5.5625) or \
+		 	  	(nQuotient > 5.9375 and nQuotient < 6.0625) or \
+				(nQuotient > 6.4375 and nQuotient < 6.5625) or \
+		 	  	(nQuotient > 6.9375 and nQuotient < 7.0625) or \
+				(nQuotient > 7.4375 and nQuotient < 7.5625) or \
+		 	  	(nQuotient > 7.9375 and nQuotient < 8.0625) ) {
+			
+				nAddr = this->GetAddr_BGFAM();
+				return nAddr;
+			};
+		} else if (BANK_NUM==32) {
+			if ((nQuotient > 0.1875 and nQuotient < 0.3125) or \
+				(nQuotient > 0.4375 and nQuotient < 0.5625) or \
+				(nQuotient > 0.6875 and nQuotient < 0.8125) or \
+		 	  	(nQuotient > 0.9375 and nQuotient < 1.0625) or \
+				(nQuotient > 1.1875 and nQuotient < 1.3125) or \
+				(nQuotient > 1.4375 and nQuotient < 1.5625) or \
+				(nQuotient > 1.6875 and nQuotient < 1.8125) or \
+		 	  	(nQuotient > 1.9375 and nQuotient < 2.0625) or \
+				(nQuotient > 2.1875	and nQuotient < 2.3125) or \
+				(nQuotient > 2.4375	and nQuotient < 2.5625) or \
+				(nQuotient > 2.6875	and nQuotient < 2.8125) or \
+		 	  	(nQuotient > 2.9375 and nQuotient < 3.0625) or \
+				(nQuotient > 3.1875 and nQuotient < 3.3125) or \
+				(nQuotient > 3.4375 and nQuotient < 3.5625) or \
+				(nQuotient > 3.6875 and nQuotient < 3.8125) or \
+		 	  	(nQuotient > 3.9375 and nQuotient < 4.0625) or \
+				(nQuotient > 4.1875 and nQuotient < 4.3125) or \
+				(nQuotient > 4.4375 and nQuotient < 4.5625) or \
+				(nQuotient > 4.6875 and nQuotient < 4.8125) or \
+		 	  	(nQuotient > 4.9375 and nQuotient < 5.0625) or \
+				(nQuotient > 5.1875 and nQuotient < 5.3125) or \
+				(nQuotient > 5.4375 and nQuotient < 5.5625) or \
+				(nQuotient > 5.6875 and nQuotient < 5.8125) or \
+		 	  	(nQuotient > 5.9375 and nQuotient < 6.0625) or \
+				(nQuotient > 6.1875 and nQuotient < 6.3125) or \
+				(nQuotient > 6.4375 and nQuotient < 6.5625) or \
+				(nQuotient > 6.6875 and nQuotient < 6.8125) or \
+		 	  	(nQuotient > 6.9375 and nQuotient < 7.0625) or \
+				(nQuotient > 7.1875 and nQuotient < 7.3125) or \
+				(nQuotient > 7.4375 and nQuotient < 7.5625) or \
+				(nQuotient > 7.6875 and nQuotient < 7.8125) or \
+		 	  	(nQuotient > 7.9375 and nQuotient < 8.0625) ) {
+			
+				nAddr = this->GetAddr_BGFAM();
+				return nAddr;
+			};
+		} else if (BANK_NUM==48) {
+			if 	((nQuotient > 0.0625 and nQuotient < 0.1875) or \
+				 (nQuotient > 0.1875 and nQuotient < 0.3125) or \
+				 (nQuotient > 0.3125 and nQuotient < 0.4375) or \
+				 (nQuotient > 0.4375 and nQuotient < 0.5625) or \
+				 (nQuotient > 0.5625 and nQuotient < 0.6875) or \
+				 (nQuotient > 0.6875 and nQuotient < 0.8125) or \
+				 (nQuotient > 0.8125 and nQuotient < 0.9375) or \
+				 (nQuotient > 0.9375 and nQuotient < 1.0625) or \
+				 (nQuotient > 1.0625 and nQuotient < 1.1875) or \
+				 (nQuotient > 1.1875 and nQuotient < 1.3125) or \
+				 (nQuotient > 1.3125 and nQuotient < 1.4375) or \
+				 (nQuotient > 1.4375 and nQuotient < 1.5625) or \
+				 (nQuotient > 1.5625 and nQuotient < 1.6875) or \
+				 (nQuotient > 1.6875 and nQuotient < 1.8125) or \
+				 (nQuotient > 1.8125 and nQuotient < 1.9375) or \
+				 (nQuotient > 1.9375 and nQuotient < 2.0625) or \
+				 (nQuotient > 2.0625 and nQuotient < 2.1875) or \
+				 (nQuotient > 2.1875 and nQuotient < 2.3125) or \
+				 (nQuotient > 2.3125 and nQuotient < 2.4375) or \
+				 (nQuotient > 2.4375 and nQuotient < 2.5625) or \
+				 (nQuotient > 2.5625 and nQuotient < 2.6875) or \
+				 (nQuotient > 2.6875 and nQuotient < 2.8125) or \
+				 (nQuotient > 2.8125 and nQuotient < 2.9375) or \
+				 (nQuotient > 2.9375 and nQuotient < 3.0625) or \
+				 (nQuotient > 3.0625 and nQuotient < 3.1875) or \
+				 (nQuotient > 3.1875 and nQuotient < 3.3125) or \
+				 (nQuotient > 3.3125 and nQuotient < 3.4375) or \
+				 (nQuotient > 3.4375 and nQuotient < 3.5625) or \
+				 (nQuotient > 3.5625 and nQuotient < 3.6875) or \
+				 (nQuotient > 3.6875 and nQuotient < 3.8125) or \
+				 (nQuotient > 3.8125 and nQuotient < 3.9375) or \
+				 (nQuotient > 3.9375 and nQuotient < 4.0625) or \
+				 (nQuotient > 4.0625 and nQuotient < 4.1875) or \
+				 (nQuotient > 4.1875 and nQuotient < 4.3125) or \
+				 (nQuotient > 4.3125 and nQuotient < 4.4375) or \
+				 (nQuotient > 4.4375 and nQuotient < 4.5625) or \
+				 (nQuotient > 4.5625 and nQuotient < 4.6875) or \
+				 (nQuotient > 4.6875 and nQuotient < 4.8125) or \
+				 (nQuotient > 4.8125 and nQuotient < 4.9375) or \
+				 (nQuotient > 4.9375 and nQuotient < 5.0625) or \
+				 (nQuotient > 5.0625 and nQuotient < 5.1875) or \
+				 (nQuotient > 5.1875 and nQuotient < 5.3125) or \
+				 (nQuotient > 5.3125 and nQuotient < 5.4375) or \
+				 (nQuotient > 5.4375 and nQuotient < 5.5625) or \
+				 (nQuotient > 5.5625 and nQuotient < 5.6875) or \
+				 (nQuotient > 5.6875 and nQuotient < 5.8125) or \
+				 (nQuotient > 5.8125 and nQuotient < 5.9375) or \
+				 (nQuotient > 5.9375 and nQuotient < 6.0625) or \
+				 (nQuotient > 6.0625 and nQuotient < 6.1875) or \
+				 (nQuotient > 6.1875 and nQuotient < 6.3125) or \
+				 (nQuotient > 6.3125 and nQuotient < 6.4375) or \
+				 (nQuotient > 6.4375 and nQuotient < 6.5625) or \
+				 (nQuotient > 6.5625 and nQuotient < 6.6875) or \
+				 (nQuotient > 6.6875 and nQuotient < 6.8125) or \
+				 (nQuotient > 6.8125 and nQuotient < 6.9375) or \
+				 (nQuotient > 6.9375 and nQuotient < 7.0625) or \
+				 (nQuotient > 7.0625 and nQuotient < 7.1875) or \
+				 (nQuotient > 7.1875 and nQuotient < 7.3125) or \
+				 (nQuotient > 7.3125 and nQuotient < 7.4375) or \
+				 (nQuotient > 7.4375 and nQuotient < 7.5625) or \
+				 (nQuotient > 7.5625 and nQuotient < 7.6875) or \
+				 (nQuotient > 7.6875 and nQuotient < 7.8125) or \
+				 (nQuotient > 7.8125 and nQuotient < 7.9375) or \
+				 (nQuotient > 7.9375 and nQuotient < 8.0625) ) {
+			
+				nAddr = this->GetAddr_BGFAM();
+				return nAddr;
+			};
+		} else if (BANK_NUM==64) {
+			if 	((nQuotient > 0.0625 and nQuotient < 0.1875) or \
+				 (nQuotient > 0.1875 and nQuotient < 0.3125) or \
+				 /*(nQuotient > 0.3125 and nQuotient < 0.4375) or \*/
+				 (nQuotient > 0.4375 and nQuotient < 0.5625) or \
+				 /*(nQuotient > 0.5625 and nQuotient < 0.6875) or \*/
+				 (nQuotient > 0.6875 and nQuotient < 0.8125) or \
+				 (nQuotient > 0.8125 and nQuotient < 0.9375) or \
+				 (nQuotient > 0.9375 and nQuotient < 1.0625) or \
+				 (nQuotient > 1.0625 and nQuotient < 1.1875) or \
+				 (nQuotient > 1.1875 and nQuotient < 1.3125) or \
+				 (nQuotient > 1.3125 and nQuotient < 1.4375) or \
+				 (nQuotient > 1.4375 and nQuotient < 1.5625) or \
+				 (nQuotient > 1.5625 and nQuotient < 1.6875) or \
+				 (nQuotient > 1.6875 and nQuotient < 1.8125) or \
+				 (nQuotient > 1.8125 and nQuotient < 1.9375) or \
+				 (nQuotient > 1.9375 and nQuotient < 2.0625) or \
+				 (nQuotient > 2.0625 and nQuotient < 2.1875) or \
+				 (nQuotient > 2.1875 and nQuotient < 2.3125) or \
+				 (nQuotient > 2.3125 and nQuotient < 2.4375) or \
+				 (nQuotient > 2.4375 and nQuotient < 2.5625) or \
+				 (nQuotient > 2.5625 and nQuotient < 2.6875) or \
+				 (nQuotient > 2.6875 and nQuotient < 2.8125) or \
+				 (nQuotient > 2.8125 and nQuotient < 2.9375) or \
+				 (nQuotient > 2.9375 and nQuotient < 3.0625) or \
+				 (nQuotient > 3.0625 and nQuotient < 3.1875) or \
+				 (nQuotient > 3.1875 and nQuotient < 3.3125) or \
+				 (nQuotient > 3.3125 and nQuotient < 3.4375) or \
+				 (nQuotient > 3.4375 and nQuotient < 3.5625) or \
+				 (nQuotient > 3.5625 and nQuotient < 3.6875) or \
+				 (nQuotient > 3.6875 and nQuotient < 3.8125) or \
+				 (nQuotient > 3.8125 and nQuotient < 3.9375) or \
+				 (nQuotient > 3.9375 and nQuotient < 4.0625) or \
+				 (nQuotient > 4.0625 and nQuotient < 4.1875) or \
+				 (nQuotient > 4.1875 and nQuotient < 4.3125) or \
+				 (nQuotient > 4.3125 and nQuotient < 4.4375) or \
+				 (nQuotient > 4.4375 and nQuotient < 4.5625) or \
+				 (nQuotient > 4.5625 and nQuotient < 4.6875) or \
+				 (nQuotient > 4.6875 and nQuotient < 4.8125) or \
+				 (nQuotient > 4.8125 and nQuotient < 4.9375) or \
+				 (nQuotient > 4.9375 and nQuotient < 5.0625) or \
+				 (nQuotient > 5.0625 and nQuotient < 5.1875) or \
+				 (nQuotient > 5.1875 and nQuotient < 5.3125) or \
+				 (nQuotient > 5.3125 and nQuotient < 5.4375) or \
+				 (nQuotient > 5.4375 and nQuotient < 5.5625) or \
+				 (nQuotient > 5.5625 and nQuotient < 5.6875) or \
+				 (nQuotient > 5.6875 and nQuotient < 5.8125) or \
+				 (nQuotient > 5.8125 and nQuotient < 5.9375) or \
+				 (nQuotient > 5.9375 and nQuotient < 6.0625) or \
+				 (nQuotient > 6.0625 and nQuotient < 6.1875) or \
+				 (nQuotient > 6.1875 and nQuotient < 6.3125) or \
+				 (nQuotient > 6.3125 and nQuotient < 6.4375) or \
+				 (nQuotient > 6.4375 and nQuotient < 6.5625) or \
+				 (nQuotient > 6.5625 and nQuotient < 6.6875) or \
+				 (nQuotient > 6.6875 and nQuotient < 6.8125) or \
+				 (nQuotient > 6.8125 and nQuotient < 6.9375) or \
+				 (nQuotient > 6.9375 and nQuotient < 7.0625) or \
+				 (nQuotient > 7.0625 and nQuotient < 7.1875) or \
+				 (nQuotient > 7.1875 and nQuotient < 7.3125) or \
+				 (nQuotient > 7.3125 and nQuotient < 7.4375) or \
+				 (nQuotient > 7.4375 and nQuotient < 7.5625) or \
+				 (nQuotient > 7.5625 and nQuotient < 7.6875) or \
+				 (nQuotient > 7.6875 and nQuotient < 7.8125) or \
+				 (nQuotient > 7.8125 and nQuotient < 7.9375) or \
+				 (nQuotient > 7.9375 and nQuotient < 8.0625) ) {
+			
+				nAddr = this->GetAddr_BGFAM();
+				return nAddr;
+			};
+		}
+		
+		#endif
+
 		// LIAM address
 		nAddr = this->GetAddr_LIAM();
 	}
@@ -860,6 +1065,9 @@ int64_t CAddrGen::GetAddr(string cAddrMap) {
 	}
 	else if (cAddrMap == "BFAM") {
 		nAddr = this->GetAddr_BFAM();
+	}
+	else if (cAddrMap == "BGFAM") {
+		nAddr = this->GetAddr_BGFAM();
 	}
 	else if (cAddrMap == "TILE") {
 		nAddr = this->GetAddr_TILE();
@@ -921,7 +1129,15 @@ int64_t CAddrGen::GetAddr_LIAM() {
 	// printf("PixelTrans = %d, ", nNumPixelTrans);
 
 	// 6. Get LIAM address 
-	int64_t nAddr = (this->nApos * BYTE_PER_PIXEL) + (this->nBpos * ImgHB); 
+	int64_t nAddr  = (this->nApos * BYTE_PER_PIXEL) + (this->nBpos * ImgHB);
+	//printf("LIAM Addr Calc: Apos=%d, Bpos=%d, ImgHB=%d => Pre-Addr=0x%llx\n", this->nApos, this->nBpos, ImgHB, nAddr);
+	uint16_t nRowBank = (uint64_t)(nAddr >> (COL_WIDTH));
+	uint16_t nRow     = floor(nRowBank/BANK_NUM);
+	uint16_t nBank    = nRowBank%BANK_NUM;
+	uint16_t nCol     = (uint64_t)(nAddr << (BANK_WIDTH+ROW_WIDTH)) >> (BANK_WIDTH+ROW_WIDTH);
+	nAddr = (nRow << (BANK_WIDTH+COL_WIDTH)) + (nBank << COL_WIDTH) + nCol;
+	//printf("LIAM Addr Calc: Apos=%d, Bpos=%d, ImgHB=%d => Addr=0x%llx (Row=%d, Bank=%d, Col=%d)\n", this->nApos, this->nBpos, ImgHB, nAddr, nRow, nBank, nCol);
+
 	nAddr = nAddr + this->nStartAddr;
 
 	#ifdef SPLIT_BANK_SHUFFLE 
@@ -1098,7 +1314,7 @@ int64_t CAddrGen::GetAddr_BFAM() {
 	int64_t nAddr = this->GetAddr_LIAM();
 
 	// Get superpage number 
-	this->nSuperPageNum = nAddr / SUPER_PAGE_SIZE;
+	this->nSuperPageNum = nAddr / (SUPER_PAGE_SIZE + (std::pow(2, BANK_WIDTH)-BANK_NUM)*PAGE_SIZE);
 
 	int64_t nRow  = GetRowNum_AMap_Global(nAddr);			// Global. Address map
 	int     nBank = GetBankNum_AMap_Global(nAddr);
@@ -1322,7 +1538,7 @@ int CAddrGen::GetBank_BFAM_BF(int nBank) {
 		else assert (0);
 	}	
 	else if (BANK_NUM <= 64) {
-		nBank_new = (nBank+BANK_NUM/2) % BANK_NUM;
+		nBank_new = (floor(nBank/16)*BANK_NUM_PER_STACK) + ((nBank+BANK_NUM_PER_STACK/2) % BANK_NUM_PER_STACK); // Extract the stack and flip within the stack
 	}
 	else {
 		assert (0);
@@ -1732,6 +1948,64 @@ int64_t CAddrGen::GetAddr_TILE() {
 	return (nAddr);
 };
 
+//---------------------------------------------------
+// Get Address (HBM's experimental address map)
+//	Bank interleaved address map
+//	1. Get LIAM address
+//	2. Do the Bank-Group-Interleaving
+//---------------------------------------------------
+int64_t CAddrGen::GetAddr_BGFAM() {
+	// Check AddrGen finished
+	if (this->eFinalTrans == ERESULT_TYPE_YES) {
+		return (-1);
+	};
+
+	// Generate LIAM address	
+	int64_t nAddr = this->GetAddr_LIAM();
+	
+		// Get superpage number 
+	this->nSuperPageNum = floor(nAddr / (SUPER_PAGE_SIZE + (std::pow(2, BANK_WIDTH)-BANK_NUM)*PAGE_SIZE));
+
+	int64_t nRow  = GetRowNum_AMap_Global(nAddr);			// Global. Address map
+	int     nBank = GetBankNum_AMap_Global(nAddr);
+	int     nCol  = GetColNum_AMap_Global(nAddr);
+	
+	int nBank_new = nBank;
+
+	//----------------------------------------------------------------------------
+	// BF+ (Bank flipping plus) algorithm
+	//	Flip every other round(Quotient) superpages
+	//	Quotient positive integer 
+	//----------------------------------------------------------------------------
+	int k = ceil((float)IMGHB / SUPER_PAGE_SIZE);
+	nBank_new = (nBank + BANK_NUM_PER_GROUP*((int)floor(this->nSuperPageNum / k)%(BANK_NUM/BANK_NUM_PER_GROUP))) % BANK_NUM; 		// Flip MSB. Experimentally, better than LSB
+	//printf("SuperPageNum = %d, k = %d, nBank = %d, nBank_new = %d\n", this->nSuperPageNum, k, nBank, nBank_new);
+
+	//nBank = (nCol/64) % BANK_NUM; // FOR Test Bank/BankGroup/SID interleaving only
+	//int nBank_new = (nBank + 4*(this->nBpos % (BANK_NUM/BANK_NUM_PER_GROUP))) % BANK_NUM;
+
+	// Debug
+	assert (nBank_new >= 0);
+	assert (nBank_new < BANK_NUM);
+
+	// Get bank-flipped address
+	int64_t nAddr_new = GetAddr_AMap_Global(nRow, nBank_new, nCol); 			// Address map
+
+	// Check last transaction application
+	if (this->nCurTrans == this->nNumTotalTrans) {
+		// this->SetFinalTrans(ERESULT_TYPE_YES);
+		this->eFinalTrans = ERESULT_TYPE_YES;
+	};
+
+	// Set temp signal
+	this->IsTransGenThisCycle = ERESULT_TYPE_YES;
+
+	// Debug
+	// this->CheckAddr();
+
+
+	return (nAddr_new);
+}
 
 //---------------------------------------------------
 // Get Address (HBM's experimental address map)
@@ -2201,7 +2475,7 @@ EResultType CAddrGen::SetNumPixelTrans() {
 
 	int nNumPixelTrans = -1; 
 
-	if (this->cAddrMap == "LIAM" or this->cAddrMap == "BFAM" or this->cAddrMap == "CIAM" or this->cAddrMap == "HBM_INTERLEAVE" ) {
+	if (this->cAddrMap == "LIAM" or this->cAddrMap == "BFAM" or this->cAddrMap == "BGFAM" or this->cAddrMap == "CIAM" or this->cAddrMap == "HBM_INTERLEAVE" ) {
 
 		nNumPixelTrans = this->nAsizeT;						// FIXME check
 	}

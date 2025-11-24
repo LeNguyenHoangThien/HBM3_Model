@@ -38,7 +38,7 @@ public:
 
 	// Set value
 	EResultType	Push(UPUD upUD);
-	UPUD		Pop(int nKey);
+	UPUD		Pop(uint64_t nKey);
 	UPUD		Pop();
 
 	EResultType	SetMemStateCmdPkt(SPMemStatePkt spThis);	// Set state. For all entires, get cmd. Set Cmd
@@ -59,7 +59,7 @@ public:
 	//SPMemCmdPkt	GetMemCmdPkt(SPLinkedMUD spThis);		// Generate Cmd for MemState
 
 	EMemCmdType	GetMemCmd(SPLinkedMUD spThis);			// Generate Cmd for MemState
-	SPLinkedMUD     GetIDHeadNode(int nID);
+	SPLinkedMUD     GetIDHeadNode(uint64_t nID);
 
 	SPMemStatePkt	GetMemStatePkt();
 

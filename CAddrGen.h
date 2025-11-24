@@ -30,7 +30,8 @@ using namespace std;
 // Tile size 
 //-------------------------------------------------------------------------------
 #if BYTE_PER_PIXEL == 4 
-	#define TILEH			16								// Pixels. Horizontal. Power-of-2
+	//#define TILEH			16								// Pixels. Horizontal. Power-of-2
+	#define TILEH			MAX_TRANS_SIZE/BYTE_PER_PIXEL	// Because of Reducing Page size
 #elif BYTE_PER_PIXEL == 1 
 	#define TILEH			64
 #endif
@@ -232,6 +233,7 @@ public:
 	int64_t		GetAddr_LIAM();
 	int64_t		GetAddr_CIAM();
 	int64_t		GetAddr_BFAM();
+	int64_t		GetAddr_BGFAM();
 	int64_t		GetAddr_HBM_Interleaving();
 
 	// BFAM

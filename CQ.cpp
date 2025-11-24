@@ -162,7 +162,7 @@ EResultType CQ::Push(UPUD upThis) {
 
 
 // Pop node first matching ID
-UPUD CQ::Pop(int nID) {
+UPUD CQ::Pop(uint64_t nID) {
 
 	// Debug
 	// this->CheckQ();
@@ -223,8 +223,6 @@ UPUD CQ::Pop(int nID) {
 	// Maintain
 	delete (spTarget->spMemCmdPkt);
 	delete (spTarget);
-	spTarget->spMemCmdPkt = NULL;
-	spTarget = NULL;
 
 	#ifdef DEBUG
 	assert (upTarget != NULL);
@@ -263,8 +261,6 @@ UPUD CQ::Pop() {
 	// Maintain
 	delete (spTarget->spMemCmdPkt);
 	delete (spTarget);
-	spTarget->spMemCmdPkt = NULL;
-	spTarget = NULL;
 
 	#ifdef DEBUG	
 	assert (upTarget != NULL);
@@ -525,7 +521,7 @@ EResultType CQ::IsFull() {
 
 
 // Get first node matching ID
-SPLinkedMUD CQ::GetIDHeadNode(int nID) {
+SPLinkedMUD CQ::GetIDHeadNode(uint64_t nID) {
 	
 	SPLinkedMUD spScan;
 	SPLinkedMUD spTarget;
@@ -722,11 +718,16 @@ EResultType CQ::UpdateState() {
 	// this->CheckQ();
 
 	// Update entry waiting cycle since allocation 
-	int nMaxCycleWait = -1;
+	uint64_t nMaxCycleWait = -1;
 	SPLinkedMUD spScan = this->spMUDList_head;
 	while (spScan != NULL) {
 
 		#ifdef DEBUG
+		if (spScan->nCycle_wait < 0) {
+			printf("Error: CQ::UpdateState() - nCycle_wait < 0\n");
+			Display();
+			assert (0);
+		};
 		assert (spScan->nCycle_wait >= 0); 	
 		#endif
 
@@ -768,7 +769,7 @@ EResultType CQ::Display() {
 		spTarget = spScan;
 		spScan   = spScan->spNext;
 		Display_UD(spTarget->upData, this->eUDType);	
-		printf("\t Waiting cycle : \t %d\n", spTarget->nCycle_wait);
+		printf("\t Waiting cycle : \t %ld\n", spTarget->nCycle_wait);
 	};
 	
 	return (ERESULT_TYPE_SUCCESS);

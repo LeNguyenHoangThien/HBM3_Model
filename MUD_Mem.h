@@ -25,10 +25,10 @@ typedef struct tagSLinkedMUD{
 	SPLinkedMUD	spPrev;
 	SPLinkedMUD	spNext;
 
-	SPMemCmdPkt	spMemCmdPkt;		// Scheduler Q entry
-	int		nID;			// Transaction ID
+	SPMemCmdPkt	spMemCmdPkt;	// Scheduler Q entry
+	uint64_t	nID;			// Transaction ID
 
-	int		nCycle_wait;    	// Waiting time since allocation
+	uint64_t	nCycle_wait;    	// Waiting time since allocation
 	// EResultType	IsBankPrepare;		// Scheduler. MC send ACT to prepare bank 
 }SLinkedMUD;
 

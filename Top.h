@@ -18,12 +18,11 @@
 // SIM cycle
 //-------------------------------------------------------------
 //:#define SIM_CYCLE 			100 
-#define SIM_CYCLE 			99999999
+// #define SIM_CYCLE 			99999999
 // #define SIM_CYCLE	 			1000000000
 // #define SIM_CYCLE 			1999999999
 // #define SIM_CYCLE 				5999999999
-// #define SIM_CYCLE 			9999999999999
-// #define SIM_CYCLE 			9999999999999999
+#define SIM_CYCLE 			9999999999999
 
 
 //-------------------------------------------------------------
@@ -116,7 +115,7 @@
 // Max. Burst length (Length of a transaction)
 // 	Actual burst length less than or equal to 4
 //-------------------------------------------------------------
-#define MAX_BURST_LENGTH		4					// MAX_TRANS_SIZE / BURST_SIZE 
+#define MAX_BURST_LENGTH		8					// MAX_TRANS_SIZE / BURST_SIZE 
 // #define AR_BURST_LEN_RANDOM
 
 
@@ -124,7 +123,8 @@
 // Burst size (bytes data width)
 //-------------------------------------------------------------
 #ifndef BURST_SIZE
-	#define BURST_SIZE          16                  // bytes
+	#define BURST_SIZE          8                  // bytes
+	// #define BURST_SIZE          1                  // bytes
 #endif
 
 
@@ -476,6 +476,7 @@
 //-------------------------------------------------------------
 //#define BANK_NUM		32 
 #define BANK_NUM_PER_GROUP		4
+#define BANK_NUM_PER_STACK		16
 
 
 //-------------------------------------------------------------
@@ -489,9 +490,9 @@
 //	DDR3-800 64MB x16 (512Mb), Page 2kB
 //	PAGE : Row in a bank
 //-------------------------------------------------------------
-#define PAGE_SIZE		2048						// 2kB
+#define PAGE_SIZE		2048							// 2kB
 // #define PAGE_SIZE		1024						// 1kB
-// #define PAGE_SIZE		512 						// 512B
+// #define PAGE_SIZE		256 						// 512B
 
 #define HBM_COMPLICATED_INTERLEAVING
 

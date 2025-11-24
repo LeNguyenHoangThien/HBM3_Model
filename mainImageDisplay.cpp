@@ -285,6 +285,8 @@ int main() {
 	cAR_AddrMap = "LIAM";
 	#elif defined(AR_BFAM) 
 	cAR_AddrMap = "BFAM";
+	#elif defined(AR_BGFAM)
+	cAR_AddrMap = "BGFAM";
 	#elif defined(AR_TILE)
 	cAR_AddrMap = "TILE";
 	#elif defined(AR_HBM_INTERLEAVE)
@@ -295,6 +297,8 @@ int main() {
 	cAW_AddrMap = "LIAM";
 	#elif defined(AW_BFAM)
 	cAW_AddrMap = "BFAM";
+	#elif defined(AW_BGFAM)
+	cAW_AddrMap = "BGFAM";
 	#elif defined(AW_TILE)
 	cAW_AddrMap = "TILE";
 	#elif defined(AW_HBM_INTERLEAVE)

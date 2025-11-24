@@ -151,8 +151,8 @@ private:
 	int		nEmpty_Q_AW_cycles;
 	int		nEmpty_Q_Ax_cycles;
 
-	int		nMax_Q_AR_Scheduled_Wait;			// Max waiting cycle req Q "scheduled" entry
-	int		nMax_Q_AW_Scheduled_Wait; 
+	uint64_t nMax_Q_AR_Scheduled_Wait;			// Max waiting cycle req Q "scheduled" entry
+	uint64_t nMax_Q_AW_Scheduled_Wait; 
 	int		nTotal_Q_AR_Scheduled_Wait;			// Accumulate waiting cycle req Q "scheduled"
 	int		nTotal_Q_AW_Scheduled_Wait; 
 };
