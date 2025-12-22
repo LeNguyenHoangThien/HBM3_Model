@@ -30,7 +30,7 @@ pixels_per_col = 64 // bytes_per_pixel
 pixels_per_page = page_size // bytes_per_pixel
 
 @njit
-def calculate_pixel_values(img_v: int, img_hb: int, super_page_size: int, num_banks: int) -> Tuple[np.ndarray, np.ndarray]:
+def calculate_pixel_values(img_v: int, img_hb: int, num_banks: int) -> Tuple[np.ndarray, np.ndarray]:
     """Vectorized calculation of super page IDs and bank IDs for all pixels."""
     total_transactions = math.ceil(img_hb  / 16) * img_v
     transactions = np.arange(total_transactions, dtype=np.uint32)
@@ -43,14 +43,14 @@ def calculate_pixel_values(img_v: int, img_hb: int, super_page_size: int, num_ba
     return ri, bi, ci, transactions
 
 
-def generate_bankgroup_interleaving_matrix_liam(num_bankgroups: int, img_hb: int) -> Tuple[np.ndarray, np.ndarray]:
+def generate_bankgroup_interleaving_matrix_liam(img_hb: int) -> Tuple[np.ndarray, np.ndarray]:
     """Generate a bankgroup interleaving matrix for LIAM using vectorized operations."""
-    return calculate_pixel_values(img_v, img_hb, super_page_size, num_banks)
+    return calculate_pixel_values(img_v, img_hb, num_banks)
 
 
-def generate_bankgroup_interleaving_matrix_bfam(num_bankgroups: int, img_hb: int) -> Tuple[np.ndarray, np.ndarray]:
+def generate_bankgroup_interleaving_matrix_bfam(img_hb: int) -> Tuple[np.ndarray, np.ndarray]:
     """Generate a bankgroup interleaving matrix for BFAM."""
-    row_ids, bank_ids = calculate_pixel_values(img_v, img_hb, super_page_size, num_banks)
+    row_ids, bank_ids, col_ids, transaction = calculate_pixel_values(img_v, img_hb, num_banks)
 
     gspn = row_ids // k
     mask = (gspn % 2 == 1)
@@ -61,7 +61,7 @@ def generate_bankgroup_interleaving_matrix_bfam(num_bankgroups: int, img_hb: int
 
 def generate_bankgroup_interleaving_matrix_bgfam(num_bankgroups: int, img_hb: int) -> Tuple[np.ndarray, np.ndarray]:
     """Generate a bankgroup interleaving matrix for BGFAM."""
-    row_ids, bank_ids = calculate_pixel_values(img_v, img_hb, super_page_size, num_banks)
+    row_ids, bank_ids = calculate_pixel_values(img_v, img_hb, num_banks)
 
     gspn = math.floor(row_ids // k)
     bank_ids = (bank_ids + (gspn % num_bankgroups) * banks_per_group) % num_banks
@@ -167,74 +167,100 @@ def bit_count(n):
 
 def generate_bankgroup_interleaving_matrix_proposal(num_bankgroups: int, img_width_pixels: int, img_height_pixels: int, tile_size: int) -> Tuple[np.ndarray, np.ndarray]:
     """Generate a bankgroup interleaving matrix for Proposal (fully vectorized)."""
-    _, _, _, transactions = calculate_pixel_values(img_v, img_width_pixels, super_page_size, num_banks)
+    _, _, _, transactions = calculate_pixel_values(img_v, img_width_pixels, num_banks)
     
     # Pre-calculate constants
     image_width_trans_all   = img_width_pixels  // pixels_per_col # one transaction = 16 pixels
     curr_col_offset         = transactions      %  image_width_trans_all
     curr_row_offset         = transactions      // image_width_trans_all
+    num_cols_log            = int(math.log2(num_cols))
 
-    block_size_trans        = num_banks << int(math.log2(num_cols))
-    
+    block_size_trans        = num_banks << num_cols_log
+    block_size_trans_log    = int(math.log2(block_size_trans))
+
     # Row Jump Pre-calculation
+    # Row Jump always be a power-of-2 number. Can these numbers be get log2() easily?
     row_jump                = np.array([cal_row_jump(curr_col_offset[i], image_width_trans_all, 64) for i in range(len(curr_col_offset))]) # Proposed a new circuit where hardware overhead should be low.
-    row_jump_lsb            = np.where((row_jump == num_cols), row_jump, (row_jump & (num_cols - 1)) | (row_jump == num_cols))
-    row_jump_msb            = row_jump >> int(math.log2(num_cols))
+    row_jump_lsb            = np.where((row_jump == num_cols), row_jump, (row_jump & (num_cols - 1)) | (row_jump == num_cols)) # Bit-wise and compare oparators
+    row_jump_msb            = row_jump >> num_cols_log # Shift Operators
     
     row_jump_log            = np.log2(np.maximum(row_jump,      1)).astype(int) # Implements in Verilog as a n-to-2^n Decoder. 2^n * 16 >= Image-Width-in-Pixels. With m = 11, the Max Image-Width-in-Pixels could be up to 32k pixels.
     row_jump_lsb            = np.log2(np.maximum(row_jump_lsb,  1)).astype(int) # Implements in Verilog as a n-to-2^n Decoder. 2^n * 16 >= Image-Width-in-Pixels. With m = 11, the Max Image-Width-in-Pixels could be up to 32k pixels.
     row_jump_msb            = np.log2(np.maximum(row_jump_msb,  1)).astype(int) # Implements in Verilog as a n-to-2^n Decoder. 2^n * 16 >= Image-Width-in-Pixels. With m = 11, the Max Image-Width-in-Pixels could be up to 32k pixels.
 
     # Bank Pre-calculation
-    num_bankgroup_per_row   = (row_jump >> int(math.log2(num_cols))) >> int(math.log2(banks_per_group))
-    num_bank_per_row        = (row_jump >> int(math.log2(num_cols)))
-    num_row_per_allbanks    = (num_banks << int(math.log2(num_cols))) >> row_jump_log
-
+    num_bankgroup_per_row   = (row_jump  >> num_cols_log) >> int(math.log2(banks_per_group))
+    num_bank_per_row        = (row_jump  >> num_cols_log)
+    
     num_row_per_banks       = (num_cols >> row_jump_lsb) * (row_jump_msb == 0)
-    num_row_per_bankgroup   = (num_bankgroups << row_jump_msb << int(math.log2(num_cols))) >> row_jump_log
+    num_row_per_bankgroup   = (num_bankgroups << row_jump_msb << num_cols_log) >> row_jump_log
 
-    num_bankgroup_per_row   = np.log2(np.maximum(num_bankgroup_per_row, 1)).astype(int) # Implements in Verilog as a n-bit Decoder. 2^n * 16 >= Image-Width-in-Pixels. With m = 11, the Max Image-Width-in-Pixels could be up to 32k pixels.
-    num_bank_per_row        = np.log2(np.maximum(num_bank_per_row,      1)).astype(int) # Implements in Verilog as a n-bit Decoder. 2^n * 16 >= Image-Width-in-Pixels. With m = 11, the Max Image-Width-in-Pixels could be up to 32k pixels.
     num_row_per_banks       = np.log2(np.maximum(num_row_per_banks,     1)).astype(int) # Implements in Verilog as a n-bit Decoder. 2^n * 16 >= Image-Width-in-Pixels. With m = 11, the Max Image-Width-in-Pixels could be up to 32k pixels.
+    num_bank_per_row        = np.log2(np.maximum(num_bank_per_row,      1)).astype(int) # Implements in Verilog as a n-bit Decoder. 2^n * 16 >= Image-Width-in-Pixels. With m = 11, the Max Image-Width-in-Pixels could be up to 32k pixels.
+    num_bankgroup_per_row   = np.log2(np.maximum(num_bankgroup_per_row, 1)).astype(int) # Implements in Verilog as a n-bit Decoder. 2^n * 16 >= Image-Width-in-Pixels. With m = 11, the Max Image-Width-in-Pixels could be up to 32k pixels.
+
 
     if (num_banks != 48):
-        num_row_per_allbanks    = np.log2(np.maximum(num_row_per_allbanks,  1)).astype(int)
         num_row_per_bankgroup   = np.log2(np.maximum(num_row_per_bankgroup, 1)).astype(int)
+
+    if (num_banks != 48):
+        num_row_per_allbanks    = (num_banks << num_cols_log) >> row_jump_log
+        num_row_per_allbanks    = np.log2(np.maximum(num_row_per_allbanks,  1)).astype(int)
+    else:
+        denominator = (num_banks << num_cols_log) % row_jump
+        condition = (denominator == 0)
+        num_row_per_allbanks = np.zeros_like(denominator)
+        np.floor_divide(row_jump, denominator, out=num_row_per_allbanks, where=~condition)
+        num_row_per_allbanks[~condition] += 1
+
     row_accumulate              = cal_row_accumulate(row_jump, image_width_trans_all)
 
     # Row: Reduction calculation
     high_bit_num            = np.array([bit_count(image_width_trans_all - row_accumulate[i]) for i in range(len(row_accumulate))])
-    row_utilization         = (image_width_trans_all - row_accumulate) - (np.floor(((image_width_trans_all - row_accumulate) * (img_height_pixels % block_size_trans)) / block_size_trans) + high_bit_num)
-    row_reduce_location     = (img_height_pixels // block_size_trans)
+    if (num_banks != 48):
+        row_utilization         = (image_width_trans_all - row_accumulate) - ((((image_width_trans_all - row_accumulate) * (img_height_pixels & (block_size_trans - 1))) >> block_size_trans_log) + high_bit_num)
+    else:
+        row_utilization         = (image_width_trans_all - row_accumulate) - ((((image_width_trans_all - row_accumulate) * (img_height_pixels % block_size_trans)) // block_size_trans) + high_bit_num)
 
     # Row: Pre calculation
-    row_reducion            = ((curr_row_offset // block_size_trans) == row_reduce_location) * row_utilization
-    row_linear              = curr_row_offset // (block_size_trans // row_jump)
     row_inc_firstblock      = image_width_trans_all - row_accumulate
-
+    row_compenstation       = np.zeros_like(curr_row_offset)
     if (num_banks != 48):
-        row_inc_block           = (curr_row_offset >> int(math.log2((block_size_trans))))   * (image_width_trans_all - row_jump)
+        # Row Reducion
+        row_reduce_location     = img_height_pixels >> block_size_trans_log
+        row_reducion            = ((curr_row_offset >> block_size_trans_log) == row_reduce_location) * row_utilization
+        # Row Linear
+        row_linear              = curr_row_offset >> np.log2(np.maximum(block_size_trans >> row_jump_log, 1)).astype(int)
+        row_inc_block           = (curr_row_offset >> block_size_trans_log) * (image_width_trans_all - row_jump)
     else:
-        row_inc_block           = (curr_row_offset // block_size_trans)                     * (image_width_trans_all - row_jump)
+        # Row Reducion
+        row_reduce_location     = img_height_pixels // block_size_trans
+        row_reducion            = ((curr_row_offset // block_size_trans) == row_reduce_location) * row_utilization
+        # Row Linear
+        row_temp                = np.where(num_bank_per_row == 0, num_banks, num_banks & (2**num_bank_per_row - 1)) # Implemented in Verilog as a encoder for 2^.... 
+        row_col_linear          = curr_col_offset < ((curr_row_offset * (row_temp << num_cols_log)) % block_size_trans)
+        row_linear              = (curr_row_offset // (block_size_trans >> row_jump_log)) - row_col_linear
+        np.floor_divide(curr_row_offset, num_row_per_allbanks, out=row_compenstation, where=(num_row_per_allbanks != 0)) # row_compenstation
+        row_inc_block           = (curr_row_offset // block_size_trans)               * (image_width_trans_all - row_jump)
 
     # Bank: Pre calculation
+    bank_inc_imgcol         = (curr_col_offset >> num_cols_log)
+    bank_inc_img_allbanks   = np.zeros_like(curr_row_offset)
     bank_linear             = (curr_row_offset >> num_row_per_banks) * (banks_per_group << num_bankgroup_per_row)
-    bank_inc_imgcol         = (curr_col_offset >> int(math.log2(num_cols)))
-
     if (num_banks != 48):
-        bank_inc_imgrow     = (curr_row_offset >> num_row_per_allbanks)
-        bank_inc_img        = ((curr_row_offset % (2**num_row_per_allbanks)) >> num_row_per_bankgroup) << num_bank_per_row
+        bank_inc_img_allbanks     = (curr_row_offset >> num_row_per_allbanks)
+        bank_inc_img_bankgroup    = ((curr_row_offset & (2**num_row_per_allbanks - 1)) >> num_row_per_bankgroup) << num_bank_per_row # Implemented in Verilog as a encoder for 2^.... 
     else:
-        bank_inc_imgrow     = np.where((num_row_per_allbanks > 0), (curr_row_offset // num_row_per_allbanks), curr_row_offset)
-        bank_inc_img        = ((curr_row_offset % num_row_per_allbanks) // num_row_per_bankgroup) << num_bank_per_row
+        np.floor_divide(curr_row_offset, num_row_per_allbanks, out=bank_inc_img_allbanks, where=(num_row_per_allbanks != 0))
+        bank_inc_img_bankgroup    = (curr_row_offset // num_row_per_bankgroup) << num_bank_per_row
+
+    #for i in range(len(curr_row_offset)):
+    #    print(f"num_row_per_bankgroup[{i}]: {num_row_per_bankgroup[i]} - row_jump_msb[{i}]: {row_jump_msb[i]}")
 
     # Calculate new address
-    new_row                 = (row_linear + row_inc_firstblock + row_inc_block - row_reducion) % num_rows
-    new_bank                = (bank_linear + bank_inc_img + bank_inc_imgrow + bank_inc_imgcol) % num_banks
+    new_row                 = (row_linear + row_inc_firstblock + row_inc_block - row_compenstation - row_reducion) % num_rows
+    new_bank                = (bank_linear + bank_inc_img_allbanks + bank_inc_img_bankgroup + bank_inc_imgcol) % num_banks
     new_col                 = (curr_col_offset + (curr_row_offset << row_jump_log)) % num_cols
-
-    #for i in range(len(bank_linear)):
-    #    print(f"row_linear[{i}]: {row_linear[i]} - row_inc_firstblock[{i}]: {row_inc_firstblock[i]} - row_inc_block[{i}]: {row_inc_block[i]} - row_reducion[{i}]: {row_reducion[i]} - new_row[{i}]: {new_row[i]}")
 
     return new_row, new_bank, new_col
 
@@ -738,12 +764,20 @@ def final_result():
         ("Proposal", generate_bankgroup_interleaving_matrix_proposal),
     ]
 
-    phy_map = generate_bankgroup_interleaving_matrix_proposal(num_bankgroups, img_hb, img_v, tile_size)
+    phy_map         = generate_bankgroup_interleaving_matrix_proposal(num_bankgroups, img_hb, img_v, tile_size)
+    #phy_map_liam    = generate_bankgroup_interleaving_matrix_liam(img_hb)
+    #phy_map_bfam    = generate_bankgroup_interleaving_matrix_bfam(img_hb)
+    #phy_map_bgfam   = generate_bankgroup_interleaving_matrix_bgfam(num_bankgroups, img_hb)
+
+    #print(f"Quality of Proposal:    {qualifying_matrix(phy_map)}")
+    #print(f"Quality of LIAM:        {qualifying_matrix(phy_map_liam)}")
+    #print(f"Quality of BFAM:        {qualifying_matrix(phy_map_bfam)}")
+    #print(f"Quality of BGFAM:       {qualifying_matrix(phy_map_bgfam)}")
 
     #print_matrix_as_image_layout(generate_bankgroup_interleaving_matrix_liam(num_bankgroups, img_hb), img_hb, img_v)
     #print_matrix(generate_bankgroup_interleaving_matrix_bfam(num_bankgroups, img_hb))
     #print_matrix(generate_bankgroup_interleaving_matrix_bgfam(num_bankgroups, img_hb))
-    print_matrix_as_image_layout(phy_map, img_hb, img_v)
+    #print_matrix_as_image_layout(phy_map, img_hb, img_v)
 
     # Check for Overlaps
     check_and_print_overlaps(phy_map)
@@ -751,7 +785,7 @@ def final_result():
     analyze_memory_fragmentation(phy_map, num_banks, num_cols)
 
     # Check for HeatMap
-    #phy_map = map_proposal_to_physical_memory(generate_bankgroup_interleaving_matrix_proposal(num_bankgroups, img_hb, img_v, tile_size), num_banks=num_banks, num_rows=img_v // 2)
+    #phy_map = map_proposal_to_physical_memory(generate_bankgroup_interleaving_matrix_proposal(num_bankgroups, img_hb, img_v, tile_size), num_banks=num_banks, num_rows=img_v)
     #save_heatmap_3D(phy_map, filename=f"./heatmap_3d/heatmap_{key}.png", img_hb=img_hb, img_v=img_v)
     #save_heatmap_2D(phy_map, filename=f"./heatmap_2d/heatmap_{key}.png", img_hb=img_hb, img_v=img_v)
 
